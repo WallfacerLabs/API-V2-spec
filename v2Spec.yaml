@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Vaults.fyi API
+  version: V2
+  description: Basic API key use is limited to 10 requests per minute.
+tags:
+  - name: General
+    description: Simple informational endpoints to provide a reference of available data in the API
+paths:
+  /v2/vaults/:
+    get:
+      tags:
+      - General
+      description: Get a list of vaults given specific filters
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: Include only vaults with provided network name or caip
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+        - name: assetSymbol
+          in: query
+          required: false
+          description: Include only vaults with an asset of provided symbol(ticker)
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/AssetSymbolFilter'
+        - name: onlyTransactional
+          in: query
+          required: false
+          description: Include only vaults that are supported in the transactional interface
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/OnlyTransactionalFilter'
+        - name: onlyAppFeatured
+          in: query
+          required: false
+          description: Include only vaults that are featured in app.vaults.fyi
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported vaults with their basic information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      allOf:
+                        - $ref: '#/components/schemas/Address'
+                    network:
+                      allOf:
+                        - $ref: '#/components/schemas/Network'
+                    asset:
+                      allOf:
+                        - $ref: '#/components/schemas/Asset'
+                    isTransactional:
+                      allOf:
+                        - $ref: '#/components/schemas/IsTransactional'
+                    isAppFeatured:
+                      allOf:
+                        - $ref: '#/components/schemas/IsAppFeatured'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/networks/:
+    get:
+      tags:
+      - General
+      description: Get a list of networks given specific filters
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported networks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Network'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/assets/:
+    get:
+      tags:
+      - General
+      description: Get a list of assets given specific filters
+      parameters:
+        - name: network
+          in: query
+          required: false
+          description: Include only assets on a specific network
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Asset'
+                    - type: object
+                      properties:
+                        network:
+                          $ref: '#/components/schemas/Network'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/tags/:
+    get:
+      tags:
+      - General
+      description: Get a list of tags
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["Lending", "RWA"]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: x-api-key
+      in: header
+
+  schemas:
+    NetworkCaip:
+      type: string
+      pattern: "^eip155:\\d+$"
+      example: "eip155:1"
+    Network:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "mainnet"
+        chainId:
+          type: number
+          example: 1
+        networkCaip:
+          allOf:
+            - $ref: '#/components/schemas/NetworkCaip'
+    AssetCaip:
+      type: string
+      pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+      example: "erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    Address:
+      type: string
+      pattern: "^0x[0-9a-fA-F]{40}$"
+      example: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    Asset:
+      type: object
+      properties:
+        address:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        assetCaip:
+          allOf:
+            - $ref: '#/components/schemas/AssetCaip'
+        name:
+          type: string
+          example: "USD Coin"
+        symbol:
+          type: string
+          example: "USDC"
+        decimals:
+          type: number
+          example: 6
+    IsTransactional:
+      type: boolean
+      example: true
+    IsAppFeatured:
+      type: boolean
+      example: true
+
+    NetworkEnumFilter:
+      enum:
+        - mainnet
+        - arbitrum
+        - optimism
+        - polygon
+        - base
+        - gnosis
+        - unichain
+        - eip155:1
+        - eip155:42161
+        - eip155:10
+        - eip155:137
+        - eip155:8453
+        - eip155:100
+        - eip155:130
+    AssetSymbolFilter:
+      type: string
+      example: "USDC"
+    OnlyTransactionalFilter:
+      type: boolean
+      default: false
+    OnlyAppFeaturedFilter:
+      type: boolean
+      default: false
+  
+  responses:
+    BadRequest:
+      description: "Bad Request - Invalid request parameters"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+              error:
+                type: string
+              message:
+                type: string
+                description: "A JSON array as a string representing detailed validation errors."
+    Unauthorized:
+      description: "Unauthorized - Missing or wrong API key"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+    InternalServerError:
+      description: "Internal Server Error - The server encountered an unexpected condition that prevented it from fulfilling the request. This could be due to an unhandled exception, misconfiguration, or temporary server issue."
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
