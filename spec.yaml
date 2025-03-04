@@ -1,0 +1,5080 @@
+---
+openapi: 3.0.3
+info:
+  title: Vaults.fyi API
+  version: V2
+  description: Basic API key use is limited to 10 requests per minute.
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: x-api-key
+      in: header
+  schemas: {}
+paths:
+  "/v1/health":
+    get:
+      tags:
+      - Health
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - status
+                - message
+                additionalProperties: false
+  "/v1/transactions/vaults/actions/details":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: userAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentDepositStep:
+                    type: string
+                  depositSteps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                        actionsUrl:
+                          type: string
+                        name:
+                          type: string
+                          enum:
+                          - deposit
+                      required:
+                      - actions
+                      - actionsUrl
+                      - name
+                      additionalProperties: false
+                  currentRedeemStep:
+                    type: string
+                  redeemSteps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                        actionsUrl:
+                          type: string
+                        name:
+                          type: string
+                          enum:
+                          - redeem
+                          - requestRedeem
+                          - claimRedeem
+                      required:
+                      - actions
+                      - actionsUrl
+                      - name
+                      additionalProperties: false
+                  lpTokenBalance:
+                    type: string
+                  idleAssets:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  lockedValueInAssets:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  unclaimedAssets:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  vaultSpecificData:
+                    type: object
+                    additionalProperties: {}
+                  rewards:
+                    type: object
+                    properties:
+                      claimable:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: string
+                            token:
+                              type: object
+                              properties:
+                                address:
+                                  type: string
+                                  pattern: "^0x[a-fA-F0-9]{40}$"
+                                name:
+                                  type: string
+                                symbol:
+                                  type: string
+                                decimals:
+                                  type: number
+                                network:
+                                  type: string
+                                  enum:
+                                  - mainnet
+                                  - arbitrum
+                                  - optimism
+                                  - polygon
+                                  - base
+                                  - gnosis
+                                  - unichain
+                              required:
+                              - address
+                              - name
+                              - symbol
+                              - decimals
+                              - network
+                              additionalProperties: false
+                          required:
+                          - amount
+                          - token
+                          additionalProperties: false
+                      currentStep:
+                        type: string
+                      steps:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            actions:
+                              type: array
+                              items:
+                                type: string
+                            actionsUrl:
+                              type: string
+                            name:
+                              type: string
+                              enum:
+                              - claim
+                          required:
+                          - actions
+                          - actionsUrl
+                          - name
+                          additionalProperties: false
+                    required:
+                    - claimable
+                    - currentStep
+                    - steps
+                    additionalProperties: false
+                required:
+                - currentDepositStep
+                - depositSteps
+                - currentRedeemStep
+                - redeemSteps
+                - lpTokenBalance
+                - idleAssets
+                - lockedValueInAssets
+                - unclaimedAssets
+                additionalProperties: false
+  "/v1/transactions/vaults/deposit":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: sender
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+          default: 'false'
+        in: query
+        name: simulate
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: assetAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      - schema:
+          type: string
+        in: query
+        name: amount
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        tx:
+                          type: object
+                          properties:
+                            to:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                            chainId:
+                              type: number
+                            data:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - to
+                          - chainId
+                          additionalProperties: false
+                        simulation:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                              - success
+                              - failure
+                              - internal server error
+                            tokensReceived:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            tokensSpent:
+                              type: object
+                              additionalProperties:
+                                type: string
+                          required:
+                          - url
+                          - status
+                          additionalProperties: false
+                      required:
+                      - name
+                      - tx
+                      additionalProperties: false
+                required:
+                - currentActionIndex
+                - actions
+                additionalProperties: false
+  "/v1/transactions/vaults/redeem":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: sender
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+          default: 'false'
+        in: query
+        name: simulate
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: assetAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      - schema:
+          type: string
+        in: query
+        name: amount
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+        in: query
+        name: all
+        required: false
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        tx:
+                          type: object
+                          properties:
+                            to:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                            chainId:
+                              type: number
+                            data:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - to
+                          - chainId
+                          additionalProperties: false
+                        simulation:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                              - success
+                              - failure
+                              - internal server error
+                            tokensReceived:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            tokensSpent:
+                              type: object
+                              additionalProperties:
+                                type: string
+                          required:
+                          - url
+                          - status
+                          additionalProperties: false
+                      required:
+                      - name
+                      - tx
+                      additionalProperties: false
+                required:
+                - currentActionIndex
+                - actions
+                additionalProperties: false
+  "/v1/transactions/vaults/request-redeem":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: sender
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+          default: 'false'
+        in: query
+        name: simulate
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: assetAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      - schema:
+          type: string
+        in: query
+        name: amount
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        tx:
+                          type: object
+                          properties:
+                            to:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                            chainId:
+                              type: number
+                            data:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - to
+                          - chainId
+                          additionalProperties: false
+                        simulation:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                              - success
+                              - failure
+                              - internal server error
+                            tokensReceived:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            tokensSpent:
+                              type: object
+                              additionalProperties:
+                                type: string
+                          required:
+                          - url
+                          - status
+                          additionalProperties: false
+                      required:
+                      - name
+                      - tx
+                      additionalProperties: false
+                required:
+                - currentActionIndex
+                - actions
+                additionalProperties: false
+  "/v1/transactions/vaults/claim-redeem":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: sender
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+          default: 'false'
+        in: query
+        name: simulate
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: assetAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        tx:
+                          type: object
+                          properties:
+                            to:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                            chainId:
+                              type: number
+                            data:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - to
+                          - chainId
+                          additionalProperties: false
+                        simulation:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                              - success
+                              - failure
+                              - internal server error
+                            tokensReceived:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            tokensSpent:
+                              type: object
+                              additionalProperties:
+                                type: string
+                          required:
+                          - url
+                          - status
+                          additionalProperties: false
+                      required:
+                      - name
+                      - tx
+                      additionalProperties: false
+                required:
+                - currentActionIndex
+                - actions
+                additionalProperties: false
+  "/v1/transactions/vaults/claim-rewards":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: sender
+        required: true
+      - schema:
+          anyOf:
+          - type: string
+            enum:
+            - 'true'
+          - type: string
+            enum:
+            - 'false'
+          default: 'false'
+        in: query
+        name: simulate
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: assetAddress
+        required: true
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: vaultAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        tx:
+                          type: object
+                          properties:
+                            to:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                            chainId:
+                              type: number
+                            data:
+                              type: string
+                            value:
+                              type: string
+                          required:
+                          - to
+                          - chainId
+                          additionalProperties: false
+                        simulation:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                              - success
+                              - failure
+                              - internal server error
+                            tokensReceived:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            tokensSpent:
+                              type: object
+                              additionalProperties:
+                                type: string
+                          required:
+                          - url
+                          - status
+                          additionalProperties: false
+                      required:
+                      - name
+                      - tx
+                      additionalProperties: false
+                required:
+                - currentActionIndex
+                - actions
+                additionalProperties: false
+  "/v1/transactions/assets":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      pattern: "^0x[a-fA-F0-9]{40}$"
+                    name:
+                      type: string
+                    symbol:
+                      type: string
+                    decimals:
+                      type: number
+                    network:
+                      type: string
+                      enum:
+                      - mainnet
+                      - arbitrum
+                      - optimism
+                      - polygon
+                      - base
+                      - gnosis
+                      - unichain
+                  required:
+                  - address
+                  - name
+                  - symbol
+                  - decimals
+                  - network
+                  additionalProperties: false
+  "/v1/transactions/vaults":
+    get:
+      tags:
+      - Transactions/Vaults
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    protocol:
+                      type: string
+                    address:
+                      type: string
+                      pattern: "^0x[a-fA-F0-9]{40}$"
+                    lpTokenAddress:
+                      type: string
+                      pattern: "^0x[a-fA-F0-9]{40}$"
+                    network:
+                      type: string
+                      enum:
+                      - mainnet
+                      - arbitrum
+                      - optimism
+                      - polygon
+                      - base
+                      - gnosis
+                      - unichain
+                    assets:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          address:
+                            type: string
+                            pattern: "^0x[a-fA-F0-9]{40}$"
+                          name:
+                            type: string
+                          symbol:
+                            type: string
+                          decimals:
+                            type: number
+                          network:
+                            type: string
+                            enum:
+                            - mainnet
+                            - arbitrum
+                            - optimism
+                            - polygon
+                            - base
+                            - gnosis
+                            - unichain
+                        required:
+                        - address
+                        - name
+                        - symbol
+                        - decimals
+                        - network
+                        additionalProperties: false
+                  required:
+                  - name
+                  - protocol
+                  - address
+                  - lpTokenAddress
+                  - network
+                  - assets
+                  additionalProperties: false
+  "/v1/vaults":
+    get:
+      tags:
+      - General
+      description: Get a list of vaults given a specific filters
+      parameters:
+      - schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        in: query
+        name: tags
+        required: false
+        description: List of tags to filter by all of the tags must be present on
+          the vault to be included in the results
+      - schema:
+          type: string
+          minLength: 1
+        in: query
+        name: token
+        required: false
+        description: Name or symbol of the token to filter by
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: false
+        description: Network name or caip to filter by
+      - schema:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: tvl_min
+        required: false
+        description: Minimum TVL in USD to filter by
+      - schema:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: tvl_max
+        required: false
+        description: Maximum TVL in USD to filter by
+      - schema:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+        in: query
+        name: transactionalOnly
+        required: false
+        description: Return only vaults that support transactional endpoints
+      - schema:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+        in: query
+        name: transactionalFeaturedOnly
+        required: false
+        description: Return only vaults that support transactional endpoints and are
+          featured in app.vaults.fyi
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Array of vaults addresses and their networks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                      description: Address of a vault
+                    network:
+                      type: string
+                      enum:
+                      - mainnet
+                      - arbitrum
+                      - optimism
+                      - polygon
+                      - base
+                      - gnosis
+                      - unichain
+                      description: Network name on which vault exists
+                  required:
+                  - address
+                  - network
+                  additionalProperties: false
+                description: Array of vaults addresses and their networks
+  "/v1/tags":
+    get:
+      tags:
+      - General
+      description: Get list of tags present in vaults.fyi database
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Array of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                description: Array of tags
+  "/v1/tokens":
+    get:
+      tags:
+      - General
+      description: Get list of tokens present in vaults.fyi database
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Array of tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    assetAddress:
+                      type: string
+                      description: Address of the token
+                    assetCaip:
+                      type: string
+                      pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                    decimals:
+                      type: number
+                      description: Decimals of the token
+                    name:
+                      type: string
+                      description: Name of the token
+                    network:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                          description: Name of the network on which token exists
+                        chainId:
+                          type: number
+                          description: Chain ID of the network on which token exists
+                      required:
+                      - name
+                      - chainId
+                      additionalProperties: false
+                    symbol:
+                      type: string
+                      description: Symbol of the token
+                  required:
+                  - assetAddress
+                  - assetCaip
+                  - decimals
+                  - name
+                  - network
+                  - symbol
+                  additionalProperties: false
+                  description: Object describing the token
+                description: Array of tokens
+  "/v1/networks":
+    get:
+      tags:
+      - General
+      description: Get list of networks present in vaults.fyi database
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Array of networks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the network
+                    chainId:
+                      type: number
+                      description: Chain ID of the network
+                  required:
+                  - name
+                  - chainId
+                  additionalProperties: false
+                  description: Object describing the network
+                description: Array of networks
+  "/v1/detailed/vaults":
+    get:
+      tags:
+      - General
+      description: Get a detailed list of vaults filtered by given parameters
+      parameters:
+      - schema:
+          type: integer
+          minimum: 0
+          default: 0
+        in: query
+        name: page
+        required: false
+        description: Page number
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          maximum: 250
+          default: 10
+        in: query
+        name: per_page
+        required: false
+        description: Number of items per page
+      - schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        in: query
+        name: tags
+        required: false
+        description: List of tags to filter by all of the tags must be present on
+          the vault to be included in the results
+      - schema:
+          type: string
+          minLength: 1
+        in: query
+        name: token
+        required: false
+        description: Name or symbol of the token to filter by
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: query
+        name: network
+        required: false
+        description: Network name or caip to filter by
+      - schema:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: tvl_min
+        required: false
+        description: Minimum TVL in USD to filter by
+      - schema:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: tvl_max
+        required: false
+        description: Maximum TVL in USD to filter by
+      - schema:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+        in: query
+        name: transactionalOnly
+        required: false
+        description: Return only vaults that support transactional endpoints
+      - schema:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+        in: query
+        name: transactionalFeaturedOnly
+        required: false
+        description: Return only vaults that support transactional endpoints and are
+          featured in app.vaults.fyi
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next_page:
+                    type: integer
+                    description: Next page number
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the vault
+                        address:
+                          type: string
+                          description: Address of a vault
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                          description: Network name on which vault exists
+                        protocol:
+                          type: string
+                          description: Protocol name to which the vault belongs
+                        tvlDetails:
+                          type: object
+                          properties:
+                            tvlNative:
+                              type: string
+                              description: Total value locked in Vault token
+                            tvlUsd:
+                              type: string
+                              description: Total value locked in USD
+                            lockedNative:
+                              type: string
+                              description: Locked amount in Vault token
+                            lockedUsd:
+                              type: string
+                              description: Locked amount in USD
+                            liquidNative:
+                              type: string
+                              description: Liquid amount in Vault token
+                            liquidUsd:
+                              type: string
+                              description: Liquid amount in USD
+                          required:
+                          - tvlNative
+                          - tvlUsd
+                          - lockedNative
+                          - lockedUsd
+                          - liquidNative
+                          - liquidUsd
+                          additionalProperties: false
+                          description: Object containing a breakdown of TVL for a
+                            vault both in native token and USD
+                        numberOfHolders:
+                          type: number
+                          nullable: true
+                          description: Number of holders of vault LP tokens
+                        lendLink:
+                          type: string
+                          nullable: true
+                          description: Lend link of the vault
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: Array of tags present on vault
+                        token:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                          description: Object describing the token of the vault
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: object
+                              properties:
+                                1day:
+                                  type: number
+                                  description: APY in BIPS with 1 day window
+                                7day:
+                                  type: number
+                                  description: APY in BIPS with 7 day window
+                                30day:
+                                  type: number
+                                  description: APY in BIPS with 30 day window
+                              required:
+                              - 1day
+                              - 7day
+                              - 30day
+                              additionalProperties: false
+                              description: Object describing the base APY of the vault
+                                given different APY windows
+                            rewards:
+                              type: object
+                              properties:
+                                1day:
+                                  type: number
+                                  description: APY in BIPS with 1 day window
+                                7day:
+                                  type: number
+                                  description: APY in BIPS with 7 day window
+                                30day:
+                                  type: number
+                                  description: APY in BIPS with 30 day window
+                              required:
+                              - 1day
+                              - 7day
+                              - 30day
+                              additionalProperties: false
+                              description: Object describing the base APY of the vault
+                                given different APY windows
+                            total:
+                              type: object
+                              properties:
+                                1day:
+                                  type: number
+                                  description: APY in BIPS with 1 day window
+                                7day:
+                                  type: number
+                                  description: APY in BIPS with 7 day window
+                                30day:
+                                  type: number
+                                  description: APY in BIPS with 30 day window
+                              required:
+                              - 1day
+                              - 7day
+                              - 30day
+                              additionalProperties: false
+                              description: Object describing the base APY of the vault
+                                given different APY windows
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                          description: Object describing the base APY of the vault
+                            given different APY windows
+                        description:
+                          type: string
+                          nullable: true
+                          description: Description of the vault
+                        rewards:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              apy:
+                                type: object
+                                properties:
+                                  1day:
+                                    type: number
+                                    description: APY in BIPS with 1 day window
+                                  7day:
+                                    type: number
+                                    description: APY in BIPS with 7 day window
+                                  30day:
+                                    type: number
+                                    description: APY in BIPS with 30 day window
+                                required:
+                                - 1day
+                                - 7day
+                                - 30day
+                                additionalProperties: false
+                                description: Object describing the APY of the reward
+                                  given different APY windows
+                              assetPriceInUsd:
+                                type: number
+                                description: Price of the asset in USD 1e8 precision
+                              asset:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    description: Name of the asset
+                                  assetAddress:
+                                    type: string
+                                    description: Address of the asset
+                                  assetCaip:
+                                    type: string
+                                    pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                                  symbol:
+                                    type: string
+                                    description: Symbol of the asset
+                                  decimals:
+                                    type: number
+                                    description: Decimals of the asset
+                                required:
+                                - name
+                                - assetAddress
+                                - assetCaip
+                                - symbol
+                                - decimals
+                                additionalProperties: false
+                                description: Object describing the reward asset
+                            required:
+                            - apy
+                            - assetPriceInUsd
+                            - asset
+                            additionalProperties: false
+                          description: Array of rewards present on vault
+                        isTransactional:
+                          type: boolean
+                          description: Boolean indicating if the vault is transactional
+                        score:
+                          type: object
+                          properties:
+                            vaultScore:
+                              type: number
+                              description: Score of the vault
+                            vaultTvlScore:
+                              type: number
+                              description: Score of the vault TVL
+                            protocolTvlScore:
+                              type: number
+                              description: Score of the protocol TVL
+                            holderScore:
+                              type: number
+                              description: Score of the vault holders
+                            networkScore:
+                              type: number
+                              description: Score of the network
+                            assetScore:
+                              type: number
+                              description: Score of the asset
+                          required:
+                          - vaultScore
+                          - vaultTvlScore
+                          - protocolTvlScore
+                          - holderScore
+                          - networkScore
+                          - assetScore
+                          additionalProperties: false
+                      required:
+                      - name
+                      - address
+                      - network
+                      - protocol
+                      - tvlDetails
+                      - numberOfHolders
+                      - lendLink
+                      - tags
+                      - token
+                      - apy
+                      - description
+                      - rewards
+                      - isTransactional
+                      - score
+                      additionalProperties: false
+                    description: Array describing the vaults
+                required:
+                - data
+                additionalProperties: false
+  "/v1/top-vault/{network}/{userAddress}":
+    get:
+      tags:
+      - General
+      description: Get the best vault for the user
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: userAddress
+        required: true
+        description: User wallet address
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userAddress:
+                    type: string
+                    pattern: "^0x[a-fA-F0-9]{40}$"
+                    description: User wallet address
+                  bestVault:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      protocol:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          product:
+                            type: string
+                            nullable: true
+                          version:
+                            type: string
+                            nullable: true
+                        required:
+                        - name
+                        additionalProperties: false
+                      vaultAddress:
+                        type: string
+                        pattern: "^0x[a-fA-F0-9]{40}$"
+                      networkName:
+                        type: string
+                        enum:
+                        - mainnet
+                        - arbitrum
+                        - optimism
+                        - polygon
+                        - base
+                        - gnosis
+                        - unichain
+                      tvlInUsd:
+                        type: number
+                      apy:
+                        type: number
+                      projectedEarnings:
+                        type: number
+                      asset:
+                        type: object
+                        properties:
+                          assetAddress:
+                            type: string
+                            pattern: "^0x[a-fA-F0-9]{40}$"
+                          decimals:
+                            type: number
+                          name:
+                            type: string
+                          symbol:
+                            type: string
+                        required:
+                        - assetAddress
+                        - decimals
+                        - name
+                        - symbol
+                        additionalProperties: false
+                    required:
+                    - protocol
+                    - vaultAddress
+                    - networkName
+                    - tvlInUsd
+                    - apy
+                    - projectedEarnings
+                    - asset
+                    additionalProperties: false
+                    nullable: true
+                    description: Best vault for the user
+                  bestEthVault:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      protocol:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          product:
+                            type: string
+                            nullable: true
+                          version:
+                            type: string
+                            nullable: true
+                        required:
+                        - name
+                        additionalProperties: false
+                      vaultAddress:
+                        type: string
+                        pattern: "^0x[a-fA-F0-9]{40}$"
+                      networkName:
+                        type: string
+                        enum:
+                        - mainnet
+                        - arbitrum
+                        - optimism
+                        - polygon
+                        - base
+                        - gnosis
+                        - unichain
+                      tvlInUsd:
+                        type: number
+                      apy:
+                        type: number
+                      projectedEarnings:
+                        type: number
+                    required:
+                    - protocol
+                    - vaultAddress
+                    - networkName
+                    - tvlInUsd
+                    - apy
+                    - projectedEarnings
+                    additionalProperties: false
+                    nullable: true
+                    description: Best ETH vault for the user
+                required:
+                - userAddress
+                - bestVault
+                - bestEthVault
+                additionalProperties: false
+  "/v1/benchmarks":
+    get:
+      tags:
+      - General
+      description: Get vaults.fyi benchmark rates
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usd:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      apy:
+                        type: object
+                        properties:
+                          1day:
+                            type: number
+                            description: APY in BIPS with 1 day window
+                          7day:
+                            type: number
+                            description: APY in BIPS with 7 day window
+                          30day:
+                            type: number
+                            description: APY in BIPS with 30 day window
+                        required:
+                        - 1day
+                        - 7day
+                        - 30day
+                        additionalProperties: false
+                        description: Object describing the base APY of the vault given
+                          different APY windows
+                      vaults:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            network:
+                              type: string
+                              enum:
+                              - mainnet
+                              - arbitrum
+                              - optimism
+                              - polygon
+                              - base
+                              - gnosis
+                              - unichain
+                            address:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                          required:
+                          - name
+                          - network
+                          - address
+                          additionalProperties: false
+                    required:
+                    - name
+                    - apy
+                    - vaults
+                    additionalProperties: false
+                  eth:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      apy:
+                        type: object
+                        properties:
+                          1day:
+                            type: number
+                            description: APY in BIPS with 1 day window
+                          7day:
+                            type: number
+                            description: APY in BIPS with 7 day window
+                          30day:
+                            type: number
+                            description: APY in BIPS with 30 day window
+                        required:
+                        - 1day
+                        - 7day
+                        - 30day
+                        additionalProperties: false
+                        description: Object describing the base APY of the vault given
+                          different APY windows
+                      vaults:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            network:
+                              type: string
+                              enum:
+                              - mainnet
+                              - arbitrum
+                              - optimism
+                              - polygon
+                              - base
+                              - gnosis
+                              - unichain
+                            address:
+                              type: string
+                              pattern: "^0x[a-fA-F0-9]{40}$"
+                          required:
+                          - name
+                          - network
+                          - address
+                          additionalProperties: false
+                    required:
+                    - name
+                    - apy
+                    - vaults
+                    additionalProperties: false
+                required:
+                - usd
+                - eth
+                additionalProperties: false
+  "/v1/vaults/{network}/{vaultAddress}/":
+    get:
+      tags:
+      - Vault
+      description: Get a vault information given a specific address and network
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Object describing the vault
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Name of the vault
+                  address:
+                    type: string
+                    description: Address of a vault
+                  network:
+                    type: string
+                    enum:
+                    - mainnet
+                    - arbitrum
+                    - optimism
+                    - polygon
+                    - base
+                    - gnosis
+                    - unichain
+                    description: Network name on which vault exists
+                  protocol:
+                    type: string
+                    description: Protocol name to which the vault belongs
+                  tvlDetails:
+                    type: object
+                    properties:
+                      tvlNative:
+                        type: string
+                        description: Total value locked in Vault token
+                      tvlUsd:
+                        type: string
+                        description: Total value locked in USD
+                      lockedNative:
+                        type: string
+                        description: Locked amount in Vault token
+                      lockedUsd:
+                        type: string
+                        description: Locked amount in USD
+                      liquidNative:
+                        type: string
+                        description: Liquid amount in Vault token
+                      liquidUsd:
+                        type: string
+                        description: Liquid amount in USD
+                    required:
+                    - tvlNative
+                    - tvlUsd
+                    - lockedNative
+                    - lockedUsd
+                    - liquidNative
+                    - liquidUsd
+                    additionalProperties: false
+                    description: Object containing a breakdown of TVL for a vault
+                      both in native token and USD
+                  numberOfHolders:
+                    type: number
+                    nullable: true
+                    description: Number of holders of vault LP tokens
+                  lendLink:
+                    type: string
+                    nullable: true
+                    description: Lend link of the vault
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of tags present on vault
+                  token:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the asset
+                      assetAddress:
+                        type: string
+                        description: Address of the asset
+                      assetCaip:
+                        type: string
+                        pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                      symbol:
+                        type: string
+                        description: Symbol of the asset
+                      decimals:
+                        type: number
+                        description: Decimals of the asset
+                    required:
+                    - name
+                    - assetAddress
+                    - assetCaip
+                    - symbol
+                    - decimals
+                    additionalProperties: false
+                    description: Object describing the token of the vault
+                  apy:
+                    type: object
+                    properties:
+                      base:
+                        type: object
+                        properties:
+                          1day:
+                            type: number
+                            description: APY in BIPS with 1 day window
+                          7day:
+                            type: number
+                            description: APY in BIPS with 7 day window
+                          30day:
+                            type: number
+                            description: APY in BIPS with 30 day window
+                        required:
+                        - 1day
+                        - 7day
+                        - 30day
+                        additionalProperties: false
+                        description: Object describing the base APY of the vault given
+                          different APY windows
+                      rewards:
+                        type: object
+                        properties:
+                          1day:
+                            type: number
+                            description: APY in BIPS with 1 day window
+                          7day:
+                            type: number
+                            description: APY in BIPS with 7 day window
+                          30day:
+                            type: number
+                            description: APY in BIPS with 30 day window
+                        required:
+                        - 1day
+                        - 7day
+                        - 30day
+                        additionalProperties: false
+                        description: Object describing the base APY of the vault given
+                          different APY windows
+                      total:
+                        type: object
+                        properties:
+                          1day:
+                            type: number
+                            description: APY in BIPS with 1 day window
+                          7day:
+                            type: number
+                            description: APY in BIPS with 7 day window
+                          30day:
+                            type: number
+                            description: APY in BIPS with 30 day window
+                        required:
+                        - 1day
+                        - 7day
+                        - 30day
+                        additionalProperties: false
+                        description: Object describing the base APY of the vault given
+                          different APY windows
+                    required:
+                    - base
+                    - total
+                    additionalProperties: false
+                    description: Object describing the base APY of the vault given
+                      different APY windows
+                  description:
+                    type: string
+                    nullable: true
+                    description: Description of the vault
+                  rewards:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        apy:
+                          type: object
+                          properties:
+                            1day:
+                              type: number
+                              description: APY in BIPS with 1 day window
+                            7day:
+                              type: number
+                              description: APY in BIPS with 7 day window
+                            30day:
+                              type: number
+                              description: APY in BIPS with 30 day window
+                          required:
+                          - 1day
+                          - 7day
+                          - 30day
+                          additionalProperties: false
+                          description: Object describing the APY of the reward given
+                            different APY windows
+                        assetPriceInUsd:
+                          type: number
+                          description: Price of the asset in USD 1e8 precision
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                          description: Object describing the reward asset
+                      required:
+                      - apy
+                      - assetPriceInUsd
+                      - asset
+                      additionalProperties: false
+                    description: Array of rewards present on vault
+                  isTransactional:
+                    type: boolean
+                    description: Boolean indicating if the vault is transactional
+                  score:
+                    type: object
+                    properties:
+                      vaultScore:
+                        type: number
+                        description: Score of the vault
+                      vaultTvlScore:
+                        type: number
+                        description: Score of the vault TVL
+                      protocolTvlScore:
+                        type: number
+                        description: Score of the protocol TVL
+                      holderScore:
+                        type: number
+                        description: Score of the vault holders
+                      networkScore:
+                        type: number
+                        description: Score of the network
+                      assetScore:
+                        type: number
+                        description: Score of the asset
+                    required:
+                    - vaultScore
+                    - vaultTvlScore
+                    - protocolTvlScore
+                    - holderScore
+                    - networkScore
+                    - assetScore
+                    additionalProperties: false
+                  assetPriceInUsd:
+                    type: number
+                    description: Price of the underlying vault asset in USD with 1e8
+                      precision
+                  topHolders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                        balance:
+                          type: string
+                      required:
+                      - address
+                      - balance
+                      additionalProperties: false
+                    description: Top holders of vault LP tokens
+                  holdersTotalBalance:
+                    type: string
+                    description: Total balance of all holders of vault LP tokens
+                required:
+                - name
+                - address
+                - network
+                - protocol
+                - tvlDetails
+                - numberOfHolders
+                - lendLink
+                - tags
+                - token
+                - apy
+                - description
+                - rewards
+                - isTransactional
+                - score
+                - assetPriceInUsd
+                - topHolders
+                - holdersTotalBalance
+                additionalProperties: false
+                description: Object describing the vault
+  "/v1/vaults/{network}/{vaultAddress}/apy":
+    get:
+      tags:
+      - Vault
+      description: Get APY data for a vault for given interval
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1day
+          - 7day
+          - 30day
+        in: query
+        name: interval
+        required: true
+        description: Resolution of the APY data
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Object describing the APY of the vault in current time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  base:
+                    type: number
+                    description: APY of the vault in BIPS
+                  rewards:
+                    type: number
+                    description: APY of the vault rewards in BIPS
+                  total:
+                    type: number
+                    description: Sum of base APY of the vault and rewards in BIPS
+                required:
+                - base
+                - total
+                additionalProperties: false
+                description: Object describing the APY of the vault in current time
+  "/v1/vaults/{network}/{vaultAddress}/historical-tvl/{timestamp}":
+    get:
+      tags:
+      - Vault
+      description: Get historical TVL data for a vault for block with closest timestamp
+        to the given one
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+        in: path
+        name: timestamp
+        required: true
+        description: Timestamp of the historical data
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Object describing the TVL of the vault in given time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: number
+                    description: Timestamp of the block for given data
+                  blockNumber:
+                    type: number
+                    description: Block number for given data
+                  tvlDetails:
+                    type: object
+                    properties:
+                      tvlNative:
+                        type: string
+                        description: Total value locked in Vault token
+                      tvlUsd:
+                        type: string
+                        description: Total value locked in USD
+                      lockedNative:
+                        type: string
+                        description: Locked amount in Vault token
+                      lockedUsd:
+                        type: string
+                        description: Locked amount in USD
+                      liquidNative:
+                        type: string
+                        description: Liquid amount in Vault token
+                      liquidUsd:
+                        type: string
+                        description: Liquid amount in USD
+                    required:
+                    - tvlNative
+                    - tvlUsd
+                    - lockedNative
+                    - lockedUsd
+                    - liquidNative
+                    - liquidUsd
+                    additionalProperties: false
+                    description: Object containing a breakdown of TVL for a vault
+                      both in native token and USD
+                required:
+                - timestamp
+                - blockNumber
+                - tvlDetails
+                additionalProperties: false
+                description: Object describing the TVL of the vault in given time
+  "/v1/vaults/{network}/{vaultAddress}/historical-apy/{timestamp}":
+    get:
+      tags:
+      - Vault
+      description: Get historical APY data for a vault for block with closest timestamp
+        to the given one
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1day
+          - 7day
+          - 30day
+        in: query
+        name: interval
+        required: true
+        description: Resolution of the APY data
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+        in: path
+        name: timestamp
+        required: true
+        description: Timestamp of the historical data
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Object describing the APY of the vault in given time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: number
+                    description: Timestamp of the block for given data
+                  blockNumber:
+                    type: number
+                    description: Block number for given data
+                  apy:
+                    type: object
+                    properties:
+                      base:
+                        type: number
+                        description: APY of the vault in BIPS
+                      rewards:
+                        type: number
+                        description: APY of the vault rewards in BIPS
+                      total:
+                        type: number
+                        description: Sum of base APY of the vault and rewards in BIPS
+                    required:
+                    - base
+                    - total
+                    additionalProperties: false
+                    description: APY broken down into components
+                required:
+                - timestamp
+                - blockNumber
+                - apy
+                additionalProperties: false
+                description: Object describing the APY of the vault in given time
+  "/v1/vaults/{network}/{vaultAddress}/historical-apy":
+    get:
+      tags:
+      - Vault PRO
+      description: Get historical APY data for a vault for blocks in given timestamp
+        range
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1day
+          - 7day
+          - 30day
+        in: query
+        name: interval
+        required: true
+        description: Resolution of the APY data
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: from_timestamp
+        required: true
+        description: Timestamp of the beginning of the range
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: to_timestamp
+        required: true
+        description: Timestamp of the end of the range
+      - schema:
+          type: integer
+          minimum: 0
+          default: 0
+        in: query
+        name: page
+        required: false
+        description: Page number
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          maximum: 50
+          default: 10
+        in: query
+        name: per_page
+        required: false
+        description: Number of items per page
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+        in: query
+        name: granularity
+        required: true
+        description: Time difference between returned data points
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next_page:
+                    type: integer
+                    description: Next page number
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: number
+                          description: Timestamp of the block for given data
+                        blockNumber:
+                          type: number
+                          description: Block number for given data
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                          description: APY broken down into components
+                      required:
+                      - timestamp
+                      - blockNumber
+                      - apy
+                      additionalProperties: false
+                    description: Array of historical APY data for the vault
+                required:
+                - data
+                additionalProperties: false
+  "/v1/vaults/{network}/{vaultAddress}/historical-data":
+    get:
+      tags:
+      - Vault PRO
+      description: Get historical APY data for a vault for blocks in given timestamp
+        range
+      parameters:
+      - schema:
+          type: integer
+          minimum: 0
+          default: 0
+        in: query
+        name: page
+        required: false
+        description: Page number
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          maximum: 50
+          default: 10
+        in: query
+        name: per_page
+        required: false
+        description: Number of items per page
+      - schema:
+          type: string
+          enum:
+          - 1day
+          - 7day
+          - 30day
+          default: 7day
+        in: query
+        name: interval
+        required: false
+        description: Resolution of the APY data
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          default: 1738423188
+        in: query
+        name: from_timestamp
+        required: false
+        description: Timestamp of the beginning of the range in epoch seconds
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          default: 1741015188
+        in: query
+        name: to_timestamp
+        required: false
+        description: Timestamp of the end of the range in epoch seconds
+      - schema:
+          type: integer
+          exclusiveMinimum: true
+          minimum: 0
+          default: 86400
+        in: query
+        name: granularity
+        required: false
+        description: Time difference between returned data points
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next_page:
+                    type: integer
+                    description: Next page number
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: number
+                          description: Timestamp of the block for given data
+                        blockNumber:
+                          type: number
+                          description: Block number for given data
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                          description: APY broken down into components
+                        tvlDetails:
+                          type: object
+                          properties:
+                            tvlNative:
+                              type: string
+                              description: Total value locked in Vault token
+                            tvlUsd:
+                              type: string
+                              description: Total value locked in USD
+                            lockedNative:
+                              type: string
+                              description: Locked amount in Vault token
+                            lockedUsd:
+                              type: string
+                              description: Locked amount in USD
+                            liquidNative:
+                              type: string
+                              description: Liquid amount in Vault token
+                            liquidUsd:
+                              type: string
+                              description: Liquid amount in USD
+                          required:
+                          - tvlNative
+                          - tvlUsd
+                          - lockedNative
+                          - lockedUsd
+                          - liquidNative
+                          - liquidUsd
+                          additionalProperties: false
+                          description: Object containing a breakdown of TVL for a
+                            vault both in native token and USD
+                      required:
+                      - timestamp
+                      - blockNumber
+                      - apy
+                      - tvlDetails
+                      additionalProperties: false
+                    description: Array of historical APY data for the vault
+                required:
+                - data
+                additionalProperties: false
+  "/v1/vaults/{network}/{vaultAddress}/holder-events/{holder}":
+    get:
+      tags:
+      - Vault
+      description: Get a list of holder events on a vault
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: holder
+        required: true
+        description: Address of a holder
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        activity:
+                          type: string
+                          enum:
+                          - Transfer
+                          - Deposit
+                          - Withdrawal
+                        timestamp:
+                          type: number
+                        amount:
+                          type: object
+                          properties:
+                            usd:
+                              type: number
+                            native:
+                              type: string
+                          required:
+                          - usd
+                          - native
+                          additionalProperties: false
+                        positionValue:
+                          type: object
+                          properties:
+                            usd:
+                              type: number
+                            native:
+                              type: string
+                          required:
+                          - usd
+                          - native
+                          additionalProperties: false
+                      required:
+                      - activity
+                      - timestamp
+                      - amount
+                      - positionValue
+                      additionalProperties: false
+                required:
+                - events
+                additionalProperties: false
+  "/v1/vaults/{network}/{vaultAddress}/holder-total-returns/{holder}":
+    get:
+      tags:
+      - Vault
+      description: Get a holder total returns on a vault
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: vaultAddress
+        required: true
+        description: Address of a vault
+      - schema:
+          type: string
+          enum:
+          - mainnet
+          - arbitrum
+          - optimism
+          - polygon
+          - base
+          - gnosis
+          - unichain
+          - eip155:1
+          - eip155:42161
+          - eip155:10
+          - eip155:137
+          - eip155:8453
+          - eip155:100
+          - eip155:130
+        in: path
+        name: network
+        required: true
+        description: Network name or caip
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: holder
+        required: true
+        description: Address of a holder
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usd:
+                    type: number
+                  native:
+                    type: number
+                required:
+                - usd
+                - native
+                additionalProperties: false
+  "/v1/portfolio/best-deposit-options/{userAddress}":
+    post:
+      tags:
+      - Portfolio
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apyInterval:
+                  type: string
+                  enum:
+                  - 1day
+                  - 7day
+                  - 30day
+                  default: 7day
+                  description: Resolution of the APY data
+                allowedNetworks:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - mainnet
+                    - arbitrum
+                    - optimism
+                    - polygon
+                    - base
+                    - gnosis
+                    - unichain
+                    - eip155:1
+                    - eip155:42161
+                    - eip155:10
+                    - eip155:137
+                    - eip155:8453
+                    - eip155:100
+                    - eip155:130
+                  default:
+                  - base
+                  - mainnet
+                  - arbitrum
+                  - polygon
+                  description: Networks to be included (name or CAIP)
+                disallowedNetworks:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - mainnet
+                    - arbitrum
+                    - optimism
+                    - polygon
+                    - base
+                    - gnosis
+                    - unichain
+                    - eip155:1
+                    - eip155:42161
+                    - eip155:10
+                    - eip155:137
+                    - eip155:8453
+                    - eip155:100
+                    - eip155:130
+                  description: Networks to be excluded (name or CAIP)
+                allowedAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Assets to be included (by symbol/ticker)
+                disallowedAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Assets to be excluded (by symbol/ticker)
+                allowedProtocols:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Protocols to be included (by name)
+                disallowedProtocols:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Protocols to be excluded (by name)
+                minimumBalanceThreshold:
+                  type: number
+                  minimum: 0
+                  default: 1
+                  description: Minimum balance in USD of the assets to be included
+                minimumVaultTvl:
+                  type: number
+                  minimum: 0
+                  default: 100000
+                  description: Minimum TVL in USD of the vaults to be included
+                transactionalOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults should
+                    be included
+                transactionalFeaturedOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults featured
+                    in app.vaults.fyi should be included
+                maxVaultsPerAsset:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 3
+                  description: Maximum number of vaults per asset
+                minApy:
+                  type: integer
+                  minimum: 0
+                  description: Minimum APY(in BPS) of the vaults to be included
+                alwaysReturnAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  default: []
+                  description: Symbols/tickers of assets to always return, regardless
+                    of balance
+              additionalProperties: false
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: userAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestedAddress:
+                    type: string
+                    pattern: "^0x[a-fA-F0-9]{40}$"
+                  userBalances:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                            networkName:
+                              type: string
+                              enum:
+                              - mainnet
+                              - arbitrum
+                              - optimism
+                              - polygon
+                              - base
+                              - gnosis
+                              - unichain
+                            networkCaip:
+                              type: string
+                              pattern: "^eip155:\\d+$"
+                            balanceNative:
+                              type: string
+                            balanceUsd:
+                              type: number
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          - networkName
+                          - networkCaip
+                          - balanceNative
+                          - balanceUsd
+                          additionalProperties: false
+                        depositOptions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              protocol:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                  product:
+                                    type: string
+                                  version:
+                                    type: string
+                                  protocolLogo:
+                                    type: string
+                                    format: uri
+                                  protocolUrl:
+                                    type: string
+                                    format: uri
+                                  description:
+                                    type: string
+                                required:
+                                - name
+                                - protocolLogo
+                                additionalProperties: false
+                              vaultAddress:
+                                type: string
+                                pattern: "^0x[a-fA-F0-9]{40}$"
+                              vaultUrl:
+                                type: string
+                                format: uri
+                              networkName:
+                                type: string
+                                enum:
+                                - mainnet
+                                - arbitrum
+                                - optimism
+                                - polygon
+                                - base
+                                - gnosis
+                                - unichain
+                              networkCaip:
+                                type: string
+                                pattern: "^eip155:\\d+$"
+                              tvlInUsd:
+                                type: number
+                              apy:
+                                type: object
+                                properties:
+                                  base:
+                                    type: number
+                                    description: APY of the vault in BIPS
+                                  rewards:
+                                    type: number
+                                    description: APY of the vault rewards in BIPS
+                                  total:
+                                    type: number
+                                    description: Sum of base APY of the vault and
+                                      rewards in BIPS
+                                required:
+                                - base
+                                - total
+                                additionalProperties: false
+                              projectedAnnualEarnings:
+                                type: number
+                              tags:
+                                type: array
+                                items:
+                                  type: string
+                                  minLength: 1
+                              isTransactional:
+                                type: boolean
+                            required:
+                            - name
+                            - protocol
+                            - vaultAddress
+                            - networkName
+                            - networkCaip
+                            - tvlInUsd
+                            - apy
+                            - projectedAnnualEarnings
+                            - isTransactional
+                            additionalProperties: false
+                      required:
+                      - asset
+                      - depositOptions
+                      additionalProperties: false
+                  errors:
+                    type: object
+                    properties:
+                      unsupportedNetworks:
+                        type: array
+                        items:
+                          type: string
+                      unsupportedAssets:
+                        type: array
+                        items:
+                          type: string
+                      unsupportedProtocols:
+                        type: array
+                        items:
+                          type: string
+                    additionalProperties: false
+                required:
+                - requestedAddress
+                - userBalances
+                additionalProperties: false
+  "/v1/portfolio/best-vault/{userAddress}":
+    post:
+      tags:
+      - Portfolio
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apyInterval:
+                  type: string
+                  enum:
+                  - 1day
+                  - 7day
+                  - 30day
+                  default: 7day
+                  description: Resolution of the APY data
+                allowedNetworks:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - mainnet
+                    - arbitrum
+                    - optimism
+                    - polygon
+                    - base
+                    - gnosis
+                    - unichain
+                    - eip155:1
+                    - eip155:42161
+                    - eip155:10
+                    - eip155:137
+                    - eip155:8453
+                    - eip155:100
+                    - eip155:130
+                  default:
+                  - base
+                  - mainnet
+                  - arbitrum
+                  - polygon
+                  description: Networks to be included (name or CAIP)
+                disallowedNetworks:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - mainnet
+                    - arbitrum
+                    - optimism
+                    - polygon
+                    - base
+                    - gnosis
+                    - unichain
+                    - eip155:1
+                    - eip155:42161
+                    - eip155:10
+                    - eip155:137
+                    - eip155:8453
+                    - eip155:100
+                    - eip155:130
+                  description: Networks to be excluded (name or CAIP)
+                allowedAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Assets to be included (by symbol/ticker)
+                disallowedAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Assets to be excluded (by symbol/ticker)
+                allowedProtocols:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Protocols to be included (by name)
+                disallowedProtocols:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  description: Protocols to be excluded (by name)
+                minimumBalanceThreshold:
+                  type: number
+                  minimum: 0
+                  default: 1
+                  description: Minimum balance in USD of the assets to be included
+                minimumVaultTvl:
+                  type: number
+                  minimum: 0
+                  default: 100000
+                  description: Minimum TVL in USD of the vaults to be included
+                transactionalOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults should
+                    be included
+                transactionalFeaturedOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults featured
+                    in app.vaults.fyi should be included
+              additionalProperties: false
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: userAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestedAddress:
+                    type: string
+                    pattern: "^0x[a-fA-F0-9]{40}$"
+                  asset:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Name of the asset
+                      assetAddress:
+                        type: string
+                        description: Address of the asset
+                      assetCaip:
+                        type: string
+                        pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                      symbol:
+                        type: string
+                        description: Symbol of the asset
+                      decimals:
+                        type: number
+                        description: Decimals of the asset
+                      networkName:
+                        type: string
+                        enum:
+                        - mainnet
+                        - arbitrum
+                        - optimism
+                        - polygon
+                        - base
+                        - gnosis
+                        - unichain
+                      networkCaip:
+                        type: string
+                        pattern: "^eip155:\\d+$"
+                      balanceNative:
+                        type: string
+                      balanceUsd:
+                        type: number
+                    required:
+                    - name
+                    - assetAddress
+                    - assetCaip
+                    - symbol
+                    - decimals
+                    - networkName
+                    - networkCaip
+                    - balanceNative
+                    - balanceUsd
+                    additionalProperties: false
+                  vault:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      protocol:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          product:
+                            type: string
+                          version:
+                            type: string
+                          protocolLogo:
+                            type: string
+                            format: uri
+                          protocolUrl:
+                            type: string
+                            format: uri
+                          description:
+                            type: string
+                        required:
+                        - name
+                        - protocolLogo
+                        additionalProperties: false
+                      vaultAddress:
+                        type: string
+                        pattern: "^0x[a-fA-F0-9]{40}$"
+                      vaultUrl:
+                        type: string
+                        format: uri
+                      networkName:
+                        type: string
+                        enum:
+                        - mainnet
+                        - arbitrum
+                        - optimism
+                        - polygon
+                        - base
+                        - gnosis
+                        - unichain
+                      networkCaip:
+                        type: string
+                        pattern: "^eip155:\\d+$"
+                      tvlInUsd:
+                        type: number
+                      apy:
+                        type: object
+                        properties:
+                          base:
+                            type: number
+                            description: APY of the vault in BIPS
+                          rewards:
+                            type: number
+                            description: APY of the vault rewards in BIPS
+                          total:
+                            type: number
+                            description: Sum of base APY of the vault and rewards
+                              in BIPS
+                        required:
+                        - base
+                        - total
+                        additionalProperties: false
+                      projectedAnnualEarnings:
+                        type: number
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 1
+                      isTransactional:
+                        type: boolean
+                    required:
+                    - name
+                    - protocol
+                    - vaultAddress
+                    - networkName
+                    - networkCaip
+                    - tvlInUsd
+                    - apy
+                    - projectedAnnualEarnings
+                    - isTransactional
+                    additionalProperties: false
+                  errors:
+                    type: object
+                    properties:
+                      unsupportedNetworks:
+                        type: array
+                        items:
+                          type: string
+                      unsupportedAssets:
+                        type: array
+                        items:
+                          type: string
+                      unsupportedProtocols:
+                        type: array
+                        items:
+                          type: string
+                    additionalProperties: false
+                required:
+                - requestedAddress
+                additionalProperties: false
+  "/v1/portfolio/wallet-balances":
+    get:
+      tags:
+      - Portfolio
+      parameters:
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: query
+        name: account
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - mainnet
+                - arbitrum
+                - optimism
+                - polygon
+                - base
+                - gnosis
+                - unichain
+                properties:
+                  mainnet:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  arbitrum:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  optimism:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  polygon:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  base:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  gnosis:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                  unichain:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        decimals:
+                          type: number
+                        network:
+                          type: string
+                          enum:
+                          - mainnet
+                          - arbitrum
+                          - optimism
+                          - polygon
+                          - base
+                          - gnosis
+                          - unichain
+                        balance:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - asset
+                          - vault
+                      required:
+                      - address
+                      - name
+                      - symbol
+                      - decimals
+                      - network
+                      - balance
+                      - balanceNative
+                      - type
+                      additionalProperties: false
+                additionalProperties: false
+  "/v1/portfolio/positions/{userAddress}":
+    get:
+      tags:
+      - Portfolio
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1day
+          - 7day
+          - 30day
+          default: 7day
+        in: query
+        name: apyInterval
+        required: false
+      - schema:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        in: path
+        name: userAddress
+        required: true
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - mainnet
+                - arbitrum
+                - optimism
+                - polygon
+                - base
+                - gnosis
+                - unichain
+                properties:
+                  mainnet:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  arbitrum:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  optimism:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  polygon:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  base:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  gnosis:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  unichain:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                additionalProperties: false
+        '301':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - mainnet
+                - arbitrum
+                - optimism
+                - polygon
+                - base
+                - gnosis
+                - unichain
+                properties:
+                  mainnet:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  arbitrum:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  optimism:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  polygon:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  base:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  gnosis:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                  unichain:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vaultAddress:
+                          type: string
+                          pattern: "^0x[a-fA-F0-9]{40}$"
+                        protocolName:
+                          type: string
+                        protocolLogo:
+                          type: string
+                          format: uri
+                        vaultName:
+                          type: string
+                        balanceUsd:
+                          type: string
+                        balanceNative:
+                          type: string
+                        balanceLp:
+                          type: string
+                        unclaimedUsd:
+                          type: string
+                        unclaimedNative:
+                          type: string
+                        apy:
+                          type: object
+                          properties:
+                            base:
+                              type: number
+                              description: APY of the vault in BIPS
+                            rewards:
+                              type: number
+                              description: APY of the vault rewards in BIPS
+                            total:
+                              type: number
+                              description: Sum of base APY of the vault and rewards
+                                in BIPS
+                          required:
+                          - base
+                          - total
+                          additionalProperties: false
+                        asset:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the asset
+                            assetAddress:
+                              type: string
+                              description: Address of the asset
+                            assetCaip:
+                              type: string
+                              pattern: "^eip155:\\d+\\/(erc20:0x[0-9a-fA-F]{40}|slip44:\\d+)$"
+                            symbol:
+                              type: string
+                              description: Symbol of the asset
+                            decimals:
+                              type: number
+                              description: Decimals of the asset
+                          required:
+                          - name
+                          - assetAddress
+                          - assetCaip
+                          - symbol
+                          - decimals
+                          additionalProperties: false
+                      required:
+                      - vaultAddress
+                      - protocolName
+                      - protocolLogo
+                      - vaultName
+                      - balanceUsd
+                      - balanceNative
+                      - balanceLp
+                      - unclaimedUsd
+                      - unclaimedNative
+                      - apy
+                      - asset
+                      additionalProperties: false
+                additionalProperties: false
+tags:
+- name: General
+  description: General endpoints
+- name: Vault
+  description: Vault endpoints
+- name: Vault PRO
+  description: Vault endpoints for PRO subscribers
