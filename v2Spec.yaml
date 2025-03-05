@@ -5,32 +5,36 @@ info:
   description: Basic API key use is limited to 10 requests per minute.
 tags:
   - name: General
-    description: Simple informational endpoints to provide a reference of available data in the API
+    description: Simple informational endpoints to provide a reference of available data in the API.
+  - name: Detailed Vaults
+    description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
+  - name: Historical (PRO)
+    description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
 paths:
   /v2/vaults/:
     get:
       tags:
       - General
-      description: Get a list of vaults given specific filters
+      description: Get a list of vaults given specific filters.
       parameters:
         - name: network
           in: query
           required: false
-          description: Include only vaults with provided network name or caip
+          description: Include only vaults with provided network (name or CAIP).
           schema:
             allOf:
               - $ref: '#/components/schemas/NetworkEnumFilter'
         - name: assetSymbol
           in: query
           required: false
-          description: Include only vaults with an asset of provided symbol(ticker)
+          description: Include only vaults with an asset of provided symbol(ticker).
           schema:
             allOf:
               - $ref: '#/components/schemas/AssetSymbolFilter'
         - name: onlyTransactional
           in: query
           required: false
-          description: Include only vaults that are supported in the transactional interface
+          description: Include only vaults that are supported in the transactional interface.
           schema:
             allOf:
               - $ref: '#/components/schemas/OnlyTransactionalFilter'
@@ -45,29 +49,14 @@ paths:
         - apiKey: []
       responses:
         '200':
-          description: Array of supported vaults with their basic information
+          description: Array of supported vaults with their basic information.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    address:
-                      allOf:
-                        - $ref: '#/components/schemas/Address'
-                    network:
-                      allOf:
-                        - $ref: '#/components/schemas/Network'
-                    asset:
-                      allOf:
-                        - $ref: '#/components/schemas/Asset'
-                    isTransactional:
-                      allOf:
-                        - $ref: '#/components/schemas/IsTransactional'
-                    isAppFeatured:
-                      allOf:
-                        - $ref: '#/components/schemas/IsAppFeatured'
+                  allOf:
+                    - $ref: '#/components/schemas/VaultBasic'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -83,7 +72,7 @@ paths:
         - apiKey: []
       responses:
         '200':
-          description: Array of supported networks
+          description: Array of supported networks.
           content:
             application/json:
               schema:
@@ -98,12 +87,12 @@ paths:
     get:
       tags:
       - General
-      description: Get a list of assets given specific filters
+      description: Get a list of assets given specific filters.
       parameters:
         - name: network
           in: query
           required: false
-          description: Include only assets on a specific network
+          description: Include only assets on a specific network (name or CAIP).
           schema:
             allOf:
               - $ref: '#/components/schemas/NetworkEnumFilter'
@@ -111,7 +100,7 @@ paths:
         - apiKey: []
       responses:
         '200':
-          description: Array of supported assets
+          description: Array of supported assets.
           content:
             application/json:
               schema:
@@ -133,12 +122,12 @@ paths:
     get:
       tags:
       - General
-      description: Get a list of tags
+      description: Get a list of tags.
       security:
         - apiKey: []
       responses:
         '200':
-          description: Array of supported tags
+          description: Array of supported tags.
           content:
             application/json:
               schema:
@@ -146,6 +135,189 @@ paths:
                 items:
                   type: string
                 example: ["Lending", "RWA"]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v2/detailed-vaults/:
+    post:
+      tags:
+      - Detailed Vaults
+      description: Get a list of vaults with detailed metrics given specific filters.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  allOf:
+                    - $ref: '#/components/schemas/PageNumberFilter'
+                perPage:
+                  allOf:
+                    - $ref: '#/components/schemas/PerPageFilter'
+                allowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedNetworksFilter'
+                disallowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
+                allowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedAssetsFilter'
+                disallowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
+                allowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
+                disallowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
+                minTvl:
+                  allOf:
+                    - $ref: '#/components/schemas/MinTvlFilter'
+                maxTvl:
+                  allOf:
+                    - $ref: '#/components/schemas/MaxTvlFilter'
+                tags:
+                  allOf:
+                    - $ref: '#/components/schemas/TagsFilter'
+                onlyTransactional:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
+                onlyAppFeatured:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+              additionalProperties: false
+              required:
+                - page
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported vaults with detailed metrics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nextPage:
+                    allOf:
+                      - $ref: '#/components/schemas/PageNumber'
+                  vaults:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/VaultDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/detailed-vaults/${network}/${vaultAddress}:
+    get:
+      tags:
+      - Detailed Vaults
+      description: Get detailed metrics for a specific vault.
+      parameters:
+        - name: network
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+        - name: vaultAddress
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Address'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Vault detailed metrics.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/VaultDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/detailed-vaults/${network}/${vaultAddress}/apy:
+    get:
+      tags:
+      - Detailed Vaults
+      description: Get apy breakdown for a specific vault.
+      parameters:
+        - name: network
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+        - name: vaultAddress
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Address'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Apy breakdown.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/ApyBreakdownForIntervals'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/detailed-vaults/${network}/${vaultAddress}/tvl:
+    get:
+      tags:
+      - Detailed Vaults
+      description: Get tvl data for a specific vault.
+      parameters:
+        - name: network
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+        - name: vaultAddress
+          in: path
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Address'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Tvl data.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/TvlDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -207,8 +379,156 @@ components:
     IsAppFeatured:
       type: boolean
       example: true
+    PageNumber:
+      type: integer
+      minimum: 0
+      example: 1
+    Protocol:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "AAVE"
+        version:
+          type: string
+          example: "v2"
+    VaultBasic:
+      type: object
+      properties:
+        address:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        network:
+          allOf:
+            - $ref: '#/components/schemas/Network'
+        asset:
+          allOf:
+            - $ref: '#/components/schemas/Asset'
+        isTransactional:
+          allOf:
+            - $ref: '#/components/schemas/IsTransactional'
+        isAppFeatured:
+          allOf:
+            - $ref: '#/components/schemas/IsAppFeatured'
+    Apy:
+      type: number
+      minimum: 0
+      example: 0.12
+    ApyForIntervals:
+      type: object
+      properties:
+        1day:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+        7day:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+        30day:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+    ApyBreakdownForIntervals:
+      type: object
+      properties:
+        base:
+          allOf:
+            - $ref: '#/components/schemas/ApyForIntervals'
+        rewards:
+          allOf:
+            - $ref: '#/components/schemas/ApyForIntervals'
+        total:
+          allOf:
+            - $ref: '#/components/schemas/ApyForIntervals'
+      required:
+        - base
+        - total
+    TvlDetails:
+      type: object
+      properties:
+        native:
+          type: string
+          example: '100000000000000000000000'
+        usd:
+          type: string
+          example: '100000'
+    RewardsDetails:
+      type: array
+      items:
+        type: object
+        properties:
+          apy:
+            allOf:
+              - $ref: '#/components/schemas/ApyForIntervals'
+          asset:
+            allOf:
+              - $ref: '#/components/schemas/Asset'
+    Score:
+      type: number
+      minimum: 0
+      maximum: 100
+      example: 55
+    ScoreDetails:
+      type: object
+      properties:
+        vaultScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+        vaultTvlScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+        protocolTvlScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+        holderScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+        networkScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+        assetScore:
+          allOf:
+            - $ref: '#/components/schemas/Score'
+    VaultDetails:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/VaultBasic'
+      properties:
+        name:
+          type: string
+          example: "Aave v3 USDC"
+        protocol:
+          allOf:
+            - $ref: '#/components/schemas/Protocol'
+        lendUrl:
+          type: string
+          example: "https://app.vaults.fyi/opportunity/mainnet/0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c"
+        protocolVaultUrl:
+          type: string
+          example: "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
+        tags:
+          type: array
+          items:
+            type: string
+          example:
+            - "Lending"
+            - "RWA"
+        holders:
+          type: number
+          example: 123
+        apy:
+          allOf:
+            - $ref: '#/components/schemas/ApyBreakdownForIntervals'
+        tvl:
+          allOf:
+            - $ref: '#/components/schemas/TvlDetails'
+        rewards:
+          allOf:
+            - $ref: '#/components/schemas/RewardsDetails'
+        score:
+          allOf:
+            - $ref: '#/components/schemas/ScoreDetails'
 
     NetworkEnumFilter:
+      type: string
       enum:
         - mainnet
         - arbitrum
@@ -230,9 +550,104 @@ components:
     OnlyTransactionalFilter:
       type: boolean
       default: false
+      description: Include only vaults that are supported in the transactional interface.
     OnlyAppFeaturedFilter:
       type: boolean
       default: false
+      description: Include only vaults that are featured in app.vaults.fyi
+    ApyIntervalFilter:
+      enum:
+        - "1day"
+        - "7day"
+        - "30day"
+      default: "7day"
+      description: Resolution of the APY data.
+    NetworksFilter:
+      type: array
+      items:
+        type: string
+        allOf:
+          - $ref: '#/components/schemas/NetworkEnumFilter'
+    AllowedNetworksFilter:
+      allOf:
+        - $ref: '#/components/schemas/NetworksFilter'
+      default:
+        - base
+        - mainnet
+        - arbitrum
+        - optimism
+      description: Networks to be included (name or CAIP).
+    DisallowedNetworksFilter:
+      allOf:
+        - $ref: '#/components/schemas/NetworksFilter'
+      example:
+        - "polygon"
+      description: Networks to be excluded (name or CAIP). The parameter is ignored if "allowedNetworks" is specified.
+    AllowedAssetsFilter:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Assets to be included by symbol(ticker)
+      example:
+        - "USDC"
+        - "USDT"
+    DisallowedAssetsFilter:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Assets to be excluded by symbol(ticker)
+      example:
+        - "DAI"
+    AllowedProtocolsFilter:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Protocols to be included by name
+      example:
+        - "AAVE"
+        - "Compound"
+    DisallowedProtocolsFilter:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Protocols to be excluded by name
+      example:
+        - "Ethena"
+    MinTvlFilter:
+      type: number
+      minimum: 0
+      default: 100000
+      description: Minimum TVL in USD of the vaults to be included
+    MaxTvlFilter:
+      type: number
+      minimum: 0
+      description: Maximum TVL in USD of the vaults to be included
+    PerPageFilter:
+      type: integer
+      exclusiveMinimum: true
+      minimum: 0
+      maximum: 250
+      default: 10
+      description: Items to include on a single page
+    PageNumberFilter:
+      type: integer
+      minimum: 0
+      default: 0
+    TagsFilter:
+      type: array
+      items:
+        type: string
+        minLength: 1
+      description: Tags to be included
+      example:
+        - "Lending"
+        - "RWA"
+    
+      
   
   responses:
     BadRequest:
