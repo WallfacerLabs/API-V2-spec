@@ -10,6 +10,8 @@ tags:
     description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
   - name: Historical (PRO)
     description: Endpoints returning historical vaults metrics.
+  - name: Transactional (PRO)
+    description: Transactional interface endpoints exposing user's position data, available actions to be taken and ready to sign transactions.
 paths:
   /v2/vaults/:
     get:
@@ -453,6 +455,122 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
+          
+  /v2/transactional/context/{network}/{vaultAddress}/{userAddress}:
+    get:
+      tags:
+        - Transactional (PRO)
+      description: Get transactional context for a specific vault and user.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Transactional context.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentDepositStep:
+                    type: string
+                  depositSteps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Step'
+                  currentRedeemStep:
+                    type: string
+                  redeemSteps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Step'
+                  lpTokenBalance:
+                    type: string
+                  idleAssets:
+                    $ref: '#/components/schemas/AssetAmounts'
+                  lockedValueInAssets:
+                    $ref: '#/components/schemas/AssetAmounts'
+                  unclaimedAssets:
+                    $ref: '#/components/schemas/AssetAmounts'
+                  vaultSpecificData:
+                    type: object
+                    additionalProperties: {}
+                  rewards:
+                    type: object
+                    properties:
+                      claimable:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UnclaimedReward'
+                      currentStep:
+                        type: string
+                      steps:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Step'
+                    required:
+                      - currentDepositStep
+                      - depositSteps
+                      - currentRedeemStep
+                      - redeemSteps
+                      - lpTokenBalance
+                      - idleAssets
+                      - lockedValueInAssets
+                      - unclaimedAssets
+                    additionalProperties: false
+  /v2/transactional/{action}/{network}/{vaultAddress}/{userAddress}:
+    get:
+      tags:
+        - Transactional (PRO)
+      description: Get actions for a specific vault and user (e.g., deposit, redeem, claim).
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
+        - $ref: '#/components/parameters/ActionPathParam'
+        - name: simulate
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - 'true'
+              - 'false'
+            default: 'false'
+        - name: assetAddress
+          in: query
+          required: true
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Address'
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: string
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Actions for the specified operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentActionIndex:
+                    type: number
+                  actions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Action'
+                required:
+                  - currentActionIndex
+                  - actions
+                additionalProperties: false
 
 components:
   securitySchemes:
@@ -685,6 +803,91 @@ components:
           minimum: 0
           example: 21980991
           description: Block number
+    
+    Tx:
+      type: object
+      properties:
+        to:
+          type: string
+          pattern: "^0x[a-fA-F0-9]{40}$"
+        chainId:
+          type: number
+        data:
+          type: string
+        value:
+          type: string
+      required:
+        - to
+        - chainId
+      additionalProperties: false
+    AssetAmounts:
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        "0xAbC1234567890deF4567890abC1234567890dEf": "10500000"
+        "0xDeF1234567890aBc1234567890deF4567890AbC": "3200000000000000000"
+    Simulation:
+      type: object
+      properties:
+        url:
+          type: string
+        status:
+          type: string
+          enum:
+            - success
+            - failure
+            - internal server error
+        tokensReceived:
+          allOf:
+            - $ref: '#/components/schemas/AssetAmounts'
+        tokensSpent:
+          allOf:
+            - $ref: '#/components/schemas/AssetAmounts'
+      required:
+        - url
+        - status
+      additionalProperties: false
+    Action:
+      type: object
+      properties:
+        name:
+          type: string
+        tx:
+          $ref: '#/components/schemas/Tx'
+        simulation:
+          $ref: '#/components/schemas/Simulation'
+      required:
+        - name
+        - tx
+      additionalProperties: false
+    Step:
+      type: object
+      properties:
+        actions:
+          type: array
+          items:
+            type: string
+        actionsUrl:
+          type: string
+        name:
+          type: string
+          enum:
+            - deposit
+            - redeem
+            - requestRedeem
+            - claimRedeem
+            - claim
+    UnclaimedReward:
+      type: object
+      properties:
+        amount:
+          type: string
+        asset:
+          $ref: '#/components/schemas/Asset'
+      required:
+        - amount
+        - asset
 
     NetworkEnumFilter:
       type: string
@@ -831,6 +1034,24 @@ components:
       schema:
         allOf:
           - $ref: '#/components/schemas/Address'
+    UserAddressPathParam:
+      name: userAddress
+      in: path
+      required: true
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/Address'
+    ActionPathParam:
+      name: action
+      in: path
+      required: true
+      schema:
+        enum:
+          - deposit
+          - redeem
+          - request-redeem
+          - claim-redeem
+          - claim-rewards
     PageQueryParam:
       name: page
       in: query
