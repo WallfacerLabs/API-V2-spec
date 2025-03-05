@@ -9,7 +9,7 @@ tags:
   - name: Detailed Vaults
     description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
   - name: Historical (PRO)
-    description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
+    description: Endpoints returning historical vaults metrics.
 paths:
   /v2/vaults/:
     get:
@@ -217,7 +217,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/detailed-vaults/${network}/${vaultAddress}:
+  /v2/detailed-vaults/{network}/{vaultAddress}:
     get:
       tags:
       - Detailed Vaults
@@ -252,7 +252,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/detailed-vaults/${network}/${vaultAddress}/apy:
+  /v2/detailed-vaults/{network}/{vaultAddress}/apy:
     get:
       tags:
       - Detailed Vaults
@@ -287,7 +287,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/detailed-vaults/${network}/${vaultAddress}/tvl:
+  /v2/detailed-vaults/{network}/{vaultAddress}/tvl:
     get:
       tags:
       - Detailed Vaults
@@ -316,6 +316,137 @@ paths:
                 type: object
                 allOf:
                   - $ref: '#/components/schemas/TvlDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v2/historical/{network}/{vaultAddress}:
+    get:
+      tags:
+      - Historical (PRO)
+      description: Historical apy and tvl data for a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/FromTimestampQueryParam'
+        - $ref: '#/components/parameters/ToTimestampQueryParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Historical tvl and apy data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nextPage:
+                    allOf:
+                      - $ref: '#/components/schemas/PageNumber'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      allOf:
+                        - $ref: '#/components/schemas/HistoricalPointTime'
+                      properties:
+                        apy:
+                          allOf:
+                            - $ref: '#/components/schemas/ApyBreakdown'
+                        tvl:
+                          allOf:
+                            - $ref: '#/components/schemas/TvlDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/historical/{network}/{vaultAddress}/apy:
+    get:
+      tags:
+      - Historical (PRO)
+      description: Historical apy data for a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/FromTimestampQueryParam'
+        - $ref: '#/components/parameters/ToTimestampQueryParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Historical apy data.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HistoricalPointTime'
+                type: object
+                properties:
+                  nextPage:
+                    allOf:
+                      - $ref: '#/components/schemas/PageNumber'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      allOf:
+                        - $ref: '#/components/schemas/HistoricalPointTime'
+                      properties:
+                        apy:
+                          allOf:
+                            - $ref: '#/components/schemas/ApyBreakdown'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/historical/{network}/{vaultAddress}/tvl:
+    get:
+      tags:
+      - Historical (PRO)
+      description: Historical tvl data for a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/FromTimestampQueryParam'
+        - $ref: '#/components/parameters/ToTimestampQueryParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Historical tvl data.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/HistoricalPointTime'
+                type: object
+                properties:
+                  nextPage:
+                    allOf:
+                      - $ref: '#/components/schemas/PageNumber'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      allOf:
+                        - $ref: '#/components/schemas/HistoricalPointTime'
+                      properties:
+                        tvl:
+                          allOf:
+                            - $ref: '#/components/schemas/TvlDetails'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -426,6 +557,21 @@ components:
         30day:
           allOf:
             - $ref: '#/components/schemas/Apy'
+    ApyBreakdown:
+      type: object
+      properties:
+        base:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+        rewards:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+        total:
+          allOf:
+            - $ref: '#/components/schemas/Apy'
+      required:
+        - base
+        - total
     ApyBreakdownForIntervals:
       type: object
       properties:
@@ -526,6 +672,19 @@ components:
         score:
           allOf:
             - $ref: '#/components/schemas/ScoreDetails'
+    HistoricalPointTime:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          minimum: 0
+          example: 1741181887
+          description: Epoch timestamp in seconds
+        blockNumber:
+          type: integer
+          minimum: 0
+          example: 21980991
+          description: Block number
 
     NetworkEnumFilter:
       type: string
@@ -646,8 +805,60 @@ components:
       example:
         - "Lending"
         - "RWA"
-    
+    FromTimestampFilter:
+      type: integer
+      minimum: 0
+      default: 0
+      description: Epoch timestamp in seconds
+    ToTimestampFilter:
+      type: integer
+      minimum: 0
+      example: 1741181887
+      description: Epoch timestamp in seconds
       
+  parameters:
+    NetworkPathParam:
+      name: network
+      in: path
+      required: true
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/NetworkEnumFilter'
+    VaultAddressPathParam:
+      name: vaultAddress
+      in: path
+      required: true
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/Address'
+    PageQueryParam:
+      name: page
+      in: query
+      required: true
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/PageNumberFilter'
+    ApyIntervalQueryParam:
+      name: apyInterval
+      in: query
+      required: true
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/ApyIntervalFilter'
+    FromTimestampQueryParam:
+      name: fromTimestamp
+      in: query
+      required: false
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/FromTimestampFilter'
+    ToTimestampQueryParam:
+      name: toTimestamp
+      in: query
+      required: false
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/ToTimestampFilter'
   
   responses:
     BadRequest:
