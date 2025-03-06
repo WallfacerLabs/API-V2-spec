@@ -12,6 +12,8 @@ tags:
     description: Endpoints returning historical vaults metrics.
   - name: Transactional (PRO)
     description: Transactional interface endpoints exposing user's position data, available actions to be taken and ready to sign transactions.
+  - name: Portfolio (PRO)
+    description: Endpoints providing informations about user's balances, positions and tailored opportunities.
 paths:
   /v2/vaults/:
     get:
@@ -204,11 +206,10 @@ paths:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
                 properties:
-                  nextPage:
-                    allOf:
-                      - $ref: '#/components/schemas/PageNumber'
-                  vaults:
+                  data:
                     type: array
                     items:
                       allOf:
@@ -346,10 +347,9 @@ paths:
             application/json:
               schema:
                 type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
                 properties:
-                  nextPage:
-                    allOf:
-                      - $ref: '#/components/schemas/PageNumber'
                   data:
                     type: array
                     items:
@@ -389,13 +389,10 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/HistoricalPointTime'
                 type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
                 properties:
-                  nextPage:
-                    allOf:
-                      - $ref: '#/components/schemas/PageNumber'
                   data:
                     type: array
                     items:
@@ -432,9 +429,9 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/HistoricalPointTime'
                 type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
                 properties:
                   nextPage:
                     allOf:
@@ -527,10 +524,10 @@ paths:
         - Transactional (PRO)
       description: Get actions for a specific vault and user (e.g., deposit, redeem, claim).
       parameters:
+        - $ref: '#/components/parameters/ActionPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
         - $ref: '#/components/parameters/UserAddressPathParam'
-        - $ref: '#/components/parameters/ActionPathParam'
         - name: simulate
           in: query
           required: false
@@ -571,6 +568,130 @@ paths:
                   - currentActionIndex
                   - actions
                 additionalProperties: false
+                
+  /v2/portfolio/wallet-balances/{userAddress}:
+    post:
+      tags:
+        - Portfolio (PRO)
+      description: Get asset balances for a user.
+      parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  allOf:
+                    - $ref: '#/components/schemas/PageNumberFilter'
+                perPage:
+                  allOf:
+                    - $ref: '#/components/schemas/PerPageFilter'
+                allowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedNetworksFilter'
+                disallowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
+                allowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedAssetsFilter'
+                disallowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
+                minUsdValueThreshold:
+                  allOf:
+                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
+                
+              additionalProperties: false
+              required:
+                - page
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of assets with user's balances.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/AssetWithBalance'
+                        - type: object
+                          properties:
+                            network:
+                              $ref: '#/components/schemas/Network'
+  /v2/portfolio/positions/{userAddress}:
+    post:
+      tags:
+        - Portfolio (PRO)
+      description: Get user's positions.
+      parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  allOf:
+                    - $ref: '#/components/schemas/PageNumberFilter'
+                perPage:
+                  allOf:
+                    - $ref: '#/components/schemas/PerPageFilter'
+                apyInterval:
+                  allOf:
+                    - $ref: '#/components/schemas/ApyIntervalFilter'
+                allowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedNetworksFilter'
+                disallowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
+                allowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedAssetsFilter'
+                disallowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
+                allowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
+                disallowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
+                minUsdValueThreshold:
+                  allOf:
+                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
+                
+              additionalProperties: false
+              required:
+                - page
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of assets with user's balances.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/VaultPosition'
 
 components:
   securitySchemes:
@@ -622,6 +743,23 @@ components:
         decimals:
           type: number
           example: 6
+    AmountNative:
+      type: string
+      example: "123120000"
+    AmountUsd:
+      type: string
+      example: "123.12"
+    AssetWithBalance:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Asset'
+      properties:
+        balanceNative:
+          allOf:
+            - $ref: '#/components/schemas/AmountNative'
+        balanceUsd:
+          allOf:
+            - $ref: '#/components/schemas/AmountUsd'
     IsTransactional:
       type: boolean
       example: true
@@ -632,6 +770,19 @@ components:
       type: integer
       minimum: 0
       example: 1
+    TotalItems:
+      type: integer
+      minimum: 0
+      example: 127
+    PagedResponse:
+      type: object
+      properties:
+        totalItems:
+          allOf:
+            - $ref: '#/components/schemas/TotalItems'
+        nextPage:
+          allOf:
+            - $ref: '#/components/schemas/PageNumber'
     Protocol:
       type: object
       properties:
@@ -790,6 +941,42 @@ components:
         score:
           allOf:
             - $ref: '#/components/schemas/ScoreDetails'
+    VaultPosition:
+      type: object
+      properties:
+        address:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        network:
+          allOf:
+            - $ref: '#/components/schemas/Network'
+        asset:
+          allOf:
+            - $ref: '#/components/schemas/Asset'
+        name:
+          type: string
+          example: "Aave v3 USDC"
+        protocol:
+          allOf:
+            - $ref: '#/components/schemas/Protocol'
+        apy:
+          allOf:
+            - $ref: '#/components/schemas/ApyBreakdown'
+        balanceNative:
+          allOf:
+            - $ref: '#/components/schemas/AmountNative'
+        balanceUsd:
+          allOf:
+            - $ref: '#/components/schemas/AmountUsd'
+        balanceLp:
+          allOf:
+            - $ref: '#/components/schemas/AmountNative'
+        unclaimedNative:
+          allOf:
+            - $ref: '#/components/schemas/AmountNative'
+        unclaimedUsd:
+          allOf:
+            - $ref: '#/components/schemas/AmountUsd'
     HistoricalPointTime:
       type: object
       properties:
@@ -812,10 +999,13 @@ components:
           pattern: "^0x[a-fA-F0-9]{40}$"
         chainId:
           type: number
+          example: 1
         data:
           type: string
+          pattern: "^0x[a-fA-F0-9]$"
         value:
           type: string
+          pattern: "^0x[a-fA-F0-9]$"
       required:
         - to
         - chainId
@@ -878,6 +1068,7 @@ components:
             - requestRedeem
             - claimRedeem
             - claim
+          example: "step"
     UnclaimedReward:
       type: object
       properties:
@@ -1018,6 +1209,11 @@ components:
       minimum: 0
       example: 1741181887
       description: Epoch timestamp in seconds
+    MinBalanceUsdThresholdFilter:
+      type: number
+      minimum: 0
+      default: 0
+      example: 0.5
       
   parameters:
     NetworkPathParam:
