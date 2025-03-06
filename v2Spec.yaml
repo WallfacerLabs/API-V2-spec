@@ -214,6 +214,9 @@ paths:
                     items:
                       allOf:
                         - $ref: '#/components/schemas/VaultDetails'
+                  errors:
+                    allOf:
+                      - $ref: '#/components/schemas/CustomErrorsAll'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -518,6 +521,12 @@ paths:
                       - lockedValueInAssets
                       - unclaimedAssets
                     additionalProperties: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v2/transactional/{action}/{network}/{vaultAddress}/{userAddress}:
     get:
       tags:
@@ -568,6 +577,12 @@ paths:
                   - currentActionIndex
                   - actions
                 additionalProperties: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
                 
   /v2/portfolio/wallet-balances/{userAddress}:
     post:
@@ -603,7 +618,6 @@ paths:
                 minUsdValueThreshold:
                   allOf:
                     - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
-                
               additionalProperties: false
               required:
                 - page
@@ -628,6 +642,15 @@ paths:
                               properties:
                                 network:
                                   $ref: '#/components/schemas/Network'
+                      errors:
+                        allOf:
+                          - $ref: '#/components/schemas/CustomErrorsNoProtocols'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/positions/{userAddress}:
     post:
       tags:
@@ -692,6 +715,176 @@ paths:
                         items:
                           allOf:
                             - $ref: '#/components/schemas/VaultPosition'
+                      errors:
+                        allOf:
+                          - $ref: '#/components/schemas/CustomErrorsAll'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/portfolio/best-deposit-options/{userAddress}:
+    post:
+      tags:
+        - Portfolio (PRO)
+      description: Get the best deposit options for a user.
+      parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apyInterval:
+                  allOf:
+                    - $ref: '#/components/schemas/ApyIntervalFilter'
+                allowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedNetworksFilter'
+                disallowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
+                allowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedAssetsFilter'
+                disallowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
+                allowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
+                disallowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
+                minimumBalanceThreshold:
+                  type: number
+                  minimum: 0
+                  default: 1
+                  description: Minimum balance in USD of the assets to be included.
+                minimumVaultTvl:
+                  type: number
+                  minimum: 0
+                  default: 100000
+                  description: Minimum TVL in USD of the vaults to be included.
+                transactionalOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults should be included.
+                transactionalFeaturedOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults featured in app.vaults.fyi should be included.
+                maxVaultsPerAsset:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 3
+                  description: Maximum number of vaults per asset.
+                minApy:
+                  type: integer
+                  minimum: 0
+                  description: Minimum APY (in BPS) of the vaults to be included.
+                alwaysReturnAssets:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  default: []
+                  description: Symbols/tickers of assets to always return, regardless of balance.
+              additionalProperties: false
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Best deposit options for the user.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BestDepositOptionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/portfolio/best-vault/{userAddress}:
+    post:
+      tags:
+        - Portfolio (PRO)
+      description: Get the best vault to deposit for a user.
+      parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                apyInterval:
+                  allOf:
+                    - $ref: '#/components/schemas/ApyIntervalFilter'
+                allowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedNetworksFilter'
+                disallowedNetworks:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
+                allowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedAssetsFilter'
+                disallowedAssets:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
+                allowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
+                disallowedProtocols:
+                  allOf:
+                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
+                minimumBalanceThreshold:
+                  type: number
+                  minimum: 0
+                  default: 1
+                  description: Minimum balance in USD of the assets to be included.
+                minimumVaultTvl:
+                  type: number
+                  minimum: 0
+                  default: 100000
+                  description: Minimum TVL in USD of the vaults to be included.
+                transactionalOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults should be included.
+                transactionalFeaturedOnly:
+                  type: boolean
+                  description: Boolean indicating if only transactional vaults featured in app.vaults.fyi should be included.
+                maxVaultsPerAsset:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 3
+                  description: Maximum number of vaults per asset.
+                minApy:
+                  type: integer
+                  minimum: 0
+                  description: Minimum APY (in BPS) of the vaults to be included.
+              additionalProperties: false
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Best vault for the user.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BestVaultResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   securitySchemes:
@@ -792,7 +985,7 @@ components:
         version:
           type: string
           example: "v2"
-    VaultBasic:
+    VaultBasicWithoutAsset:
       type: object
       properties:
         address:
@@ -801,15 +994,20 @@ components:
         network:
           allOf:
             - $ref: '#/components/schemas/Network'
-        asset:
-          allOf:
-            - $ref: '#/components/schemas/Asset'
         isTransactional:
           allOf:
             - $ref: '#/components/schemas/IsTransactional'
         isAppFeatured:
           allOf:
             - $ref: '#/components/schemas/IsAppFeatured'
+    VaultBasic:
+      allOf:
+        - $ref: '#/components/schemas/VaultBasicWithoutAsset'
+        - type: object
+          properties:
+            asset:
+              allOf:
+                - $ref: '#/components/schemas/Asset'
     Apy:
       type: number
       minimum: 0
@@ -902,6 +1100,13 @@ components:
         assetScore:
           allOf:
             - $ref: '#/components/schemas/Score'
+    Tags:
+      type: array
+      items:
+        type: string
+      example:
+        - "Lending"
+        - "RWA"
     VaultDetails:
       type: object
       allOf:
@@ -920,12 +1125,8 @@ components:
           type: string
           example: "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
         tags:
-          type: array
-          items:
-            type: string
-          example:
-            - "Lending"
-            - "RWA"
+          allOf:
+            - $ref: '#/components/schemas/Tags'
         holders:
           type: number
           example: 123
@@ -942,41 +1143,34 @@ components:
           allOf:
             - $ref: '#/components/schemas/ScoreDetails'
     VaultPosition:
-      type: object
-      properties:
-        address:
-          allOf:
-            - $ref: '#/components/schemas/Address'
-        network:
-          allOf:
-            - $ref: '#/components/schemas/Network'
-        asset:
-          allOf:
-            - $ref: '#/components/schemas/Asset'
-        name:
-          type: string
-          example: "Aave v3 USDC"
-        protocol:
-          allOf:
-            - $ref: '#/components/schemas/Protocol'
-        apy:
-          allOf:
-            - $ref: '#/components/schemas/ApyBreakdown'
-        balanceNative:
-          allOf:
-            - $ref: '#/components/schemas/AmountNative'
-        balanceUsd:
-          allOf:
-            - $ref: '#/components/schemas/AmountUsd'
-        balanceLp:
-          allOf:
-            - $ref: '#/components/schemas/AmountNative'
-        unclaimedNative:
-          allOf:
-            - $ref: '#/components/schemas/AmountNative'
-        unclaimedUsd:
-          allOf:
-            - $ref: '#/components/schemas/AmountUsd'
+      allOf:
+        - $ref: '#/components/schemas/VaultBasic'
+        - type: object
+          properties:
+            name:
+              type: string
+              example: "Aave v3 USDC"
+            protocol:
+              allOf:
+                - $ref: '#/components/schemas/Protocol'
+            apy:
+              allOf:
+                - $ref: '#/components/schemas/ApyBreakdown'
+            balanceNative:
+              allOf:
+                - $ref: '#/components/schemas/AmountNative'
+            balanceUsd:
+              allOf:
+                - $ref: '#/components/schemas/AmountUsd'
+            balanceLp:
+              allOf:
+                - $ref: '#/components/schemas/AmountNative'
+            unclaimedNative:
+              allOf:
+                - $ref: '#/components/schemas/AmountNative'
+            unclaimedUsd:
+              allOf:
+                - $ref: '#/components/schemas/AmountUsd'
     HistoricalPointTime:
       type: object
       properties:
@@ -1079,6 +1273,110 @@ components:
       required:
         - amount
         - asset
+    
+    BestDepositOptionsResponse:
+      type: object
+      properties:
+        requestedAddress:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        userBalances:
+          type: array
+          items:
+            type: object
+            properties:
+              asset:
+                allOf:
+                  -  $ref: '#/components/schemas/AssetWithBalance'
+              depositOptions:
+                type: array
+                items:
+                  allOf:
+                    -  $ref: '#/components/schemas/DepositOption'
+        errors:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrorsAll'
+      required:
+        - requestedAddress
+        - userBalances
+      additionalProperties: false
+      
+    BestVaultResponse:
+      type: object
+      properties:
+        requestedAddress:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        asset:
+          allOf:
+            -  $ref: '#/components/schemas/AssetWithBalance'
+        vault:
+          allOf:
+            -  $ref: '#/components/schemas/DepositOption'
+        errors:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrorsAll'
+      required:
+        - requestedAddress
+        - asset
+        - vault
+      additionalProperties: false
+      
+    DepositOption:
+      allOf:
+        - $ref: '#/components/schemas/VaultBasicWithoutAsset'
+        - type: object
+          properties:
+            name:
+              type: string
+              example: "Aave v3 USDC"
+            protocol:
+              allOf:
+                - $ref: '#/components/schemas/Protocol'
+            apy:
+              allOf:
+                - $ref: '#/components/schemas/ApyBreakdown'
+            tvl:
+              allOf:
+                - $ref: '#/components/schemas/TvlDetails'
+            tags:
+              allOf:
+                - $ref: '#/components/schemas/Tags'
+            projectedUsdAnnualEarnings:
+              type: string
+              example: "112.23"
+            lendUrl:
+              type: string
+              example: "https://app.vaults.fyi/opportunity/mainnet/0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c"
+            protocolVaultUrl:
+              type: string
+              example: "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
+
+    CustomErrors:
+      type: array
+      items:
+        type: string
+    CustomErrorsAll:
+      type: object
+      properties:
+        unsupportedNetworks:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrors'
+        unsupportedAssets:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrors'
+        unsupportedProtocols:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrors'
+    CustomErrorsNoProtocols:
+      type: object
+      properties:
+        unsupportedNetworks:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrors'
+        unsupportedAssets:
+          allOf:
+            - $ref: '#/components/schemas/CustomErrors'
 
     NetworkEnumFilter:
       type: string
