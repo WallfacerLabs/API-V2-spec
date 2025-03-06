@@ -615,19 +615,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 allOf:
                   - $ref: '#/components/schemas/PagedResponse'
-                properties:
-                  data:
-                    type: array
-                    items:
-                      allOf:
-                        - $ref: '#/components/schemas/AssetWithBalance'
-                        - type: object
-                          properties:
-                            network:
-                              $ref: '#/components/schemas/Network'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/AssetWithBalance'
+                            - type: object
+                              properties:
+                                network:
+                                  $ref: '#/components/schemas/Network'
   /v2/portfolio/positions/{userAddress}:
     post:
       tags:
@@ -679,19 +679,19 @@ paths:
         - apiKey: []
       responses:
         '200':
-          description: Array of assets with user's balances.
+          description: Array of user's positions.
           content:
             application/json:
               schema:
-                type: object
                 allOf:
                   - $ref: '#/components/schemas/PagedResponse'
-                properties:
-                  data:
-                    type: array
-                    items:
-                      allOf:
-                        - $ref: '#/components/schemas/VaultPosition'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/VaultPosition'
 
 components:
   securitySchemes:
@@ -750,16 +750,16 @@ components:
       type: string
       example: "123.12"
     AssetWithBalance:
-      type: object
       allOf:
         - $ref: '#/components/schemas/Asset'
-      properties:
-        balanceNative:
-          allOf:
-            - $ref: '#/components/schemas/AmountNative'
-        balanceUsd:
-          allOf:
-            - $ref: '#/components/schemas/AmountUsd'
+        - type: object
+          properties:
+            balanceNative:
+              allOf:
+                - $ref: '#/components/schemas/AmountNative'
+            balanceUsd:
+              allOf:
+                - $ref: '#/components/schemas/AmountUsd'
     IsTransactional:
       type: boolean
       example: true
