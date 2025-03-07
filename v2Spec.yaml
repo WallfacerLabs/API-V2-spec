@@ -18,11 +18,13 @@ tags:
     description: Endpoints providing information about user's balances, positions and tailored opportunities.
 paths:
   /v2/vaults/:
-    get:
+    post:
       tags:
       - General
       description: Get a list of vaults given specific filters.
       parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
         - name: network
           in: query
           required: false
@@ -59,10 +61,57 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  allOf:
-                    - $ref: '#/components/schemas/VaultBasic'
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/VaultBasic'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/assets/:
+    post:
+      tags:
+      - General
+      description: Get a list of assets given specific filters.
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+        - name: network
+          in: query
+          required: false
+          description: Include only assets on a specific network (name or CAIP).
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/NetworkEnumFilter'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Array of supported assets.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/Asset'
+                            - type: object
+                              properties:
+                                network:
+                                  $ref: '#/components/schemas/Network'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -85,41 +134,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Network'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  /v2/assets/:
-    get:
-      tags:
-      - General
-      description: Get a list of assets given specific filters.
-      parameters:
-        - name: network
-          in: query
-          required: false
-          description: Include only assets on a specific network (name or CAIP).
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/NetworkEnumFilter'
-      security:
-        - apiKey: []
-      responses:
-        '200':
-          description: Array of supported assets.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  allOf:
-                    - $ref: '#/components/schemas/Asset'
-                    - type: object
-                      properties:
-                        network:
-                          $ref: '#/components/schemas/Network'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -371,7 +385,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /v2/historical/{network}/{vaultAddress}:
-    get:
+    post:
       tags:
       - Historical (PRO)
       description: Historical apy and tvl data for a specific vault.
@@ -379,6 +393,7 @@ paths:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
         - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
         - $ref: '#/components/parameters/ApyIntervalQueryParam'
         - $ref: '#/components/parameters/FromTimestampQueryParam'
         - $ref: '#/components/parameters/ToTimestampQueryParam'
@@ -414,7 +429,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/historical/{network}/{vaultAddress}/apy:
-    get:
+    post:
       tags:
       - Historical (PRO)
       description: Historical apy data for a specific vault.
@@ -422,6 +437,7 @@ paths:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
         - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
         - $ref: '#/components/parameters/ApyIntervalQueryParam'
         - $ref: '#/components/parameters/FromTimestampQueryParam'
         - $ref: '#/components/parameters/ToTimestampQueryParam'
@@ -433,20 +449,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 allOf:
                   - $ref: '#/components/schemas/PagedResponse'
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      allOf:
-                        - $ref: '#/components/schemas/HistoricalPointTime'
-                      properties:
-                        apy:
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
                           allOf:
-                            - $ref: '#/components/schemas/ApyBreakdown'
+                            - $ref: '#/components/schemas/HistoricalPointTime'
+                            - type: object
+                              properties:
+                                apy:
+                                  allOf:
+                                    - $ref: '#/components/schemas/ApyBreakdown'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -454,7 +470,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/historical/{network}/{vaultAddress}/tvl:
-    get:
+    post:
       tags:
       - Historical (PRO)
       description: Historical tvl data for a specific vault.
@@ -462,6 +478,7 @@ paths:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
         - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
         - $ref: '#/components/parameters/ApyIntervalQueryParam'
         - $ref: '#/components/parameters/FromTimestampQueryParam'
         - $ref: '#/components/parameters/ToTimestampQueryParam'
@@ -766,7 +783,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/positions/{network}/{vaultAddress}/{userAddress}:
-    get:
+    post:
       tags:
         - Portfolio (PRO)
       description: Get user's position for a specific vault.
@@ -792,7 +809,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/events/{network}/{vaultAddress}/{userAddress}:
-    get:
+    post:
       tags:
       - Portfolio (PRO)
       description: Historical events performed by a user on a specific vault.
@@ -801,6 +818,7 @@ paths:
         - $ref: '#/components/parameters/VaultAddressPathParam'
         - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
         - $ref: '#/components/parameters/FromTimestampQueryParam'
         - $ref: '#/components/parameters/ToTimestampQueryParam'
       security:
@@ -1724,6 +1742,13 @@ components:
       schema:
         allOf:
           - $ref: '#/components/schemas/PageNumberFilter'
+    PerPageQueryParam:
+      name: perPage
+      in: query
+      required: false
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/PerPageFilter'
     ApyIntervalQueryParam:
       name: apyInterval
       in: query
