@@ -8,12 +8,14 @@ tags:
     description: Simple informational endpoints to provide a reference of available data in the API.
   - name: Detailed Vaults
     description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
+  - name: Benchmarks
+    description: vaults.fyi curated benchmarks for usd and eth yields.
   - name: Historical (PRO)
     description: Endpoints returning historical vaults metrics.
   - name: Transactional (PRO)
     description: Transactional interface endpoints exposing user's position data, available actions to be taken and ready to sign transactions.
   - name: Portfolio (PRO)
-    description: Endpoints providing informations about user's balances, positions and tailored opportunities.
+    description: Endpoints providing information about user's balances, positions and tailored opportunities.
 paths:
   /v2/vaults/:
     get:
@@ -322,6 +324,45 @@ paths:
                 type: object
                 allOf:
                   - $ref: '#/components/schemas/AmountBreakdown'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+          
+  /v2/benchmarks/:
+    post:
+      tags:
+      - Benchmarks
+      description: Get vaults.fyi curated benchmarks aggregated through provided networks.
+      parameters:
+        - name: includedNetworks
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              allOf:
+                - $ref: '#/components/schemas/NetworkEnumFilter'
+            default:
+              - "mainnet"
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Benchmarks data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usd:
+                    allOf:
+                    - $ref: '#/components/schemas/BenchmarkData'
+                  eth:
+                    allOf:
+                    - $ref: '#/components/schemas/BenchmarkData'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1082,6 +1123,30 @@ components:
         version:
           type: string
           example: "v2"
+    VaultBenchmarks:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Aave v3 USDC"
+        address:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        network:
+          allOf:
+            - $ref: '#/components/schemas/Network'
+    BenchmarkData:
+      type: object
+      properties:
+        apy:
+          allOf:
+            - $ref: '#/components/schemas/ApyBreakdown'
+        includedVaults:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/VaultBenchmarks'
+
     VaultBasicWithoutAsset:
       type: object
       properties:
