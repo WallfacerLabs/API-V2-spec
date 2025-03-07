@@ -321,7 +321,7 @@ paths:
               schema:
                 type: object
                 allOf:
-                  - $ref: '#/components/schemas/TvlDetails'
+                  - $ref: '#/components/schemas/AmountBreakdown'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -365,7 +365,7 @@ paths:
                             - $ref: '#/components/schemas/ApyBreakdown'
                         tvl:
                           allOf:
-                            - $ref: '#/components/schemas/TvlDetails'
+                            - $ref: '#/components/schemas/AmountBreakdown'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -448,7 +448,7 @@ paths:
                       properties:
                         tvl:
                           allOf:
-                            - $ref: '#/components/schemas/TvlDetails'
+                            - $ref: '#/components/schemas/AmountBreakdown'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -718,6 +718,103 @@ paths:
                       errors:
                         allOf:
                           - $ref: '#/components/schemas/CustomErrorsAll'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/portfolio/positions/{network}/{vaultAddress}/{userAddress}:
+    get:
+      tags:
+        - Portfolio (PRO)
+      description: Get user's position for a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: User's position on a specific vault.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/VaultPosition'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/portfolio/events/{network}/{vaultAddress}/{userAddress}:
+    get:
+      tags:
+      - Portfolio (PRO)
+      description: Historical events performed by a user on a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/FromTimestampQueryParam'
+        - $ref: '#/components/parameters/ToTimestampQueryParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: User events.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/HistoricalPointTime'
+                            - type: object
+                              properties:
+                                eventType:
+                                  allOf:
+                                    - $ref: '#/components/schemas/EventType'
+                                eventAssetAmount:
+                                  allOf:
+                                    - $ref: '#/components/schemas/AmountBreakdown'
+                                resultingPosition:
+                                  allOf:
+                                    - $ref: '#/components/schemas/AmountBreakdown'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v2/portfolio/returns/{network}/{vaultAddress}/{userAddress}:
+    get:
+      tags:
+      - Portfolio (PRO)
+      description: Total user returns on a specific vault.
+      parameters:
+        - $ref: '#/components/parameters/NetworkPathParam'
+        - $ref: '#/components/parameters/VaultAddressPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: User returns.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AmountBreakdown'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1054,7 +1151,7 @@ components:
       required:
         - base
         - total
-    TvlDetails:
+    AmountBreakdown:
       type: object
       properties:
         native:
@@ -1135,7 +1232,7 @@ components:
             - $ref: '#/components/schemas/ApyBreakdownForIntervals'
         tvl:
           allOf:
-            - $ref: '#/components/schemas/TvlDetails'
+            - $ref: '#/components/schemas/AmountBreakdown'
         rewards:
           allOf:
             - $ref: '#/components/schemas/RewardsDetails'
@@ -1338,7 +1435,7 @@ components:
                 - $ref: '#/components/schemas/ApyBreakdown'
             tvl:
               allOf:
-                - $ref: '#/components/schemas/TvlDetails'
+                - $ref: '#/components/schemas/AmountBreakdown'
             tags:
               allOf:
                 - $ref: '#/components/schemas/Tags'
@@ -1351,6 +1448,15 @@ components:
             protocolVaultUrl:
               type: string
               example: "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
+
+    EventType:
+      type: string
+      enum:
+        - TransferIn
+        - TransferOut
+        - Deposit
+        - Withdrawal
+      example: "Deposit"
 
     CustomErrors:
       type: array
