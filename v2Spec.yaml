@@ -917,32 +917,27 @@ paths:
                 disallowedProtocols:
                   allOf:
                     - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minimumBalanceThreshold:
-                  type: number
-                  minimum: 0
-                  default: 1
-                  description: Minimum balance in USD of the assets to be included.
-                minimumVaultTvl:
-                  type: number
-                  minimum: 0
-                  default: 100000
-                  description: Minimum TVL in USD of the vaults to be included.
-                transactionalOnly:
-                  type: boolean
-                  description: Boolean indicating if only transactional vaults should be included.
-                transactionalFeaturedOnly:
-                  type: boolean
-                  description: Boolean indicating if only transactional vaults featured in app.vaults.fyi should be included.
+                minTvl:
+                  allOf:
+                    - $ref: '#/components/schemas/MinTvlFilter'
+                onlyTransactional:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
+                onlyAppFeatured:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+                minUsdValueThreshold:
+                  allOf:
+                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
+                minApy:
+                  allOf:
+                    - $ref: '#/components/schemas/MinApyFilter'
                 maxVaultsPerAsset:
                   type: integer
                   minimum: 1
                   maximum: 5
                   default: 3
                   description: Maximum number of vaults per asset.
-                minApy:
-                  type: integer
-                  minimum: 0
-                  description: Minimum APY (in BPS) of the vaults to be included.
                 alwaysReturnAssets:
                   type: array
                   items:
@@ -1001,32 +996,21 @@ paths:
                 disallowedProtocols:
                   allOf:
                     - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minimumBalanceThreshold:
-                  type: number
-                  minimum: 0
-                  default: 1
-                  description: Minimum balance in USD of the assets to be included.
-                minimumVaultTvl:
-                  type: number
-                  minimum: 0
-                  default: 100000
-                  description: Minimum TVL in USD of the vaults to be included.
-                transactionalOnly:
-                  type: boolean
-                  description: Boolean indicating if only transactional vaults should be included.
-                transactionalFeaturedOnly:
-                  type: boolean
-                  description: Boolean indicating if only transactional vaults featured in app.vaults.fyi should be included.
-                maxVaultsPerAsset:
-                  type: integer
-                  minimum: 1
-                  maximum: 5
-                  default: 3
-                  description: Maximum number of vaults per asset.
+                minTvl:
+                  allOf:
+                    - $ref: '#/components/schemas/MinTvlFilter'
+                onlyTransactional:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
+                onlyAppFeatured:
+                  allOf:
+                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+                minUsdValueThreshold:
+                  allOf:
+                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
                 minApy:
-                  type: integer
-                  minimum: 0
-                  description: Minimum APY (in BPS) of the vaults to be included.
+                  allOf:
+                    - $ref: '#/components/schemas/MinApyFilter'
               additionalProperties: false
       security:
         - apiKey: []
@@ -1669,6 +1653,11 @@ components:
       type: number
       minimum: 0
       description: Maximum TVL in USD of the vaults to be included
+    MinApyFilter:
+      type: number
+      minimum: 0
+      example: 0.12
+      description: Minimum APY of the vaults to be included
     PerPageFilter:
       type: integer
       exclusiveMinimum: true
