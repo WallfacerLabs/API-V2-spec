@@ -2,26 +2,29 @@ openapi: 3.0.3
 info:
   title: Vaults.fyi API
   version: V2
-  description: Basic API key use is limited to 10 requests per minute.
+  description: >-
+    The Vaults.fyi V2 API offers a streamlined, better structured, and more performant interface 
+    for accessing DeFi vault data. This simplified version delivers optimized performance while
+    maintaining comprehensive coverage across networks. Basic API key use is limited to 10 requests per minute.
 tags:
   - name: General
-    description: Simple informational endpoints to provide a reference of available data in the API.
+    description: Core informational endpoints providing essential reference data such as networks, assets, and vaults listings for orientation and exploration.
   - name: Detailed Vaults
-    description: Detailed endpoints for vaults including in depth metrics such as apy, tvl, rewards etc.
+    description: Comprehensive vault data endpoints delivering in-depth analytics including APY metrics, TVL statistics, rewards breakdowns, and risk scores.
   - name: Benchmarks
-    description: vaults.fyi curated benchmarks for usd and eth yields.
+    description: Vaults.fyi curated benchmark endpoints providing aggregated yield performance data for USD and ETH denominated assets across selected networks.
   - name: Historical (PRO)
-    description: Endpoints returning historical vaults metrics.
+    description: Premium endpoints returning time-series historical data for vault metrics, enabling trend analysis and performance tracking over customizable periods.
   - name: Transactional (PRO)
-    description: Transactional interface endpoints exposing user's position data, available actions to be taken and ready to sign transactions.
+    description: Advanced transactional interface endpoints exposing user position data, executable actions, and transaction-ready payloads for direct integration with DeFi protocols.
   - name: Portfolio (PRO)
-    description: Endpoints providing information about user's balances, positions and tailored opportunities.
+    description: Advanced endpoints providing detailed information about user balances, active positions, historical interactions, and tailored investment opportunities.
 paths:
   /v2/vaults/:
     post:
       tags:
       - General
-      description: Get a list of vaults given specific filters.
+      description: Retrieves a filtered list of vaults with their basic information including address, network, associated asset details, and transactional support status.
       parameters:
         - $ref: '#/components/parameters/PageQueryParam'
         - $ref: '#/components/parameters/PerPageQueryParam'
@@ -80,7 +83,7 @@ paths:
     post:
       tags:
       - General
-      description: Get a list of assets given specific filters.
+      description: Retrieves a filtered list of supported assets with their metadata including address, symbol, name, decimals, and network information.
       parameters:
         - $ref: '#/components/parameters/PageQueryParam'
         - $ref: '#/components/parameters/PerPageQueryParam'
@@ -122,7 +125,7 @@ paths:
     get:
       tags:
       - General
-      description: Get a list of networks given specific filters
+      description: Retrieves a complete list of supported blockchain networks with their identifiers including network name, chain ID, and CAIP format identifier.
       security:
         - apiKey: []
       responses:
@@ -142,7 +145,7 @@ paths:
     get:
       tags:
       - General
-      description: Get a list of tags.
+      description: Retrieves a complete list of available vault categorization tags that can be used for filtering and organizing vault data.
       security:
         - apiKey: []
       responses:
@@ -164,7 +167,7 @@ paths:
     post:
       tags:
       - Detailed Vaults
-      description: Get a list of vaults with detailed metrics given specific filters.
+      description: Retrieves a comprehensive list of vaults with detailed performance metrics including APY, TVL, rewards, risk scores, and protocol information based on specified filters.
       requestBody:
         content:
           application/json:
@@ -243,7 +246,7 @@ paths:
     get:
       tags:
       - Detailed Vaults
-      description: Get detailed metrics for a specific vault.
+      description: Retrieves complete performance analytics and metrics for a specific vault identified by its network and contract address.
       parameters:
         - name: network
           in: path
@@ -278,7 +281,7 @@ paths:
     get:
       tags:
       - Detailed Vaults
-      description: Get apy breakdown for a specific vault.
+      description: Retrieves detailed APY breakdown for a specific vault, including base yield and rewards components across different time intervals (1-day, 7-day, 30-day).
       parameters:
         - name: network
           in: path
@@ -313,7 +316,7 @@ paths:
     get:
       tags:
       - Detailed Vaults
-      description: Get tvl data for a specific vault.
+      description: Retrieves Total Value Locked (TVL) metrics for a specific vault, including both native token amount and USD value representation.
       parameters:
         - name: network
           in: path
@@ -349,7 +352,7 @@ paths:
     post:
       tags:
       - Benchmarks
-      description: Get vaults.fyi curated benchmarks aggregated through provided networks.
+      description: Retrieves vaults.fyi curated benchmark data for USD and ETH yield performance, aggregated across the specified networks with detailed APY metrics and contributing vault information.
       parameters:
         - name: includedNetworks
           in: query
@@ -388,7 +391,7 @@ paths:
     post:
       tags:
       - Historical (PRO)
-      description: Historical apy and tvl data for a specific vault.
+      description: Retrieves time-series historical data for both APY and TVL metrics for a specific vault, allowing for trend analysis across customizable time periods.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -432,7 +435,7 @@ paths:
     post:
       tags:
       - Historical (PRO)
-      description: Historical apy data for a specific vault.
+      description: Retrieves time-series historical APY data for a specific vault, including base yield and rewards components over a customizable time range.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -473,7 +476,7 @@ paths:
     post:
       tags:
       - Historical (PRO)
-      description: Historical tvl data for a specific vault.
+      description: Retrieves time-series historical TVL data for a specific vault, tracking capital flow trends in both native token amount and USD value over a customizable time range.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -518,7 +521,7 @@ paths:
     get:
       tags:
         - Transactional (PRO)
-      description: Get transactional context for a specific vault and user.
+      description: Retrieves the complete transactional context for a user's interaction with a specific vault, including available deposit/redeem steps, current balances, and claimable rewards.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -589,7 +592,7 @@ paths:
     get:
       tags:
         - Transactional (PRO)
-      description: Get actions for a specific vault and user (e.g., deposit, redeem, claim).
+      description: Retrieves executable transaction payloads for specific actions (deposit, redeem, claim) for a user interacting with a vault, including ready-to-sign transaction data and optional simulation results.
       parameters:
         - $ref: '#/components/parameters/ActionPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
@@ -646,7 +649,7 @@ paths:
     post:
       tags:
         - Portfolio (PRO)
-      description: Get asset balances for a user.
+      description: Retrieves detailed on-chain wallet balances for a specific user across multiple networks and assets, including both native token amounts and USD value representations.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
       requestBody:
@@ -713,7 +716,7 @@ paths:
     post:
       tags:
         - Portfolio (PRO)
-      description: Get user's positions.
+      description: Retrieves all active vault positions for a specific user across multiple networks and protocols, including deposit amounts, current APY, and unclaimed rewards.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
       requestBody:
@@ -786,7 +789,7 @@ paths:
     post:
       tags:
         - Portfolio (PRO)
-      description: Get user's position for a specific vault.
+      description: Retrieves detailed information about a user's position in a specific vault, including deposit amount, current APY, and unclaimed rewards for focused analysis.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -812,7 +815,7 @@ paths:
     post:
       tags:
       - Portfolio (PRO)
-      description: Historical events performed by a user on a specific vault.
+      description: Retrieves chronological event history for a user's interactions with a specific vault, including deposits, withdrawals, and transfers with timestamp and block number information.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -859,7 +862,7 @@ paths:
     get:
       tags:
       - Portfolio (PRO)
-      description: Total user returns on a specific vault.
+      description: Retrieves the cumulative investment returns for a user's position in a specific vault, showing total yield earned in both native token amount and USD value.
       parameters:
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
@@ -884,7 +887,7 @@ paths:
     post:
       tags:
         - Portfolio (PRO)
-      description: Get the best deposit options for a user.
+      description: Analyzes a user's existing wallet balances and recommends optimal vault deposit opportunities based on yield performance, risk parameters, and user-defined criteria.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
       requestBody:
@@ -968,7 +971,7 @@ paths:
     post:
       tags:
         - Portfolio (PRO)
-      description: Get the best vault to deposit for a user.
+      description: Identifies and recommends the single highest-performing vault opportunity for a user based on their wallet balances, yield metrics, risk parameters, and customizable investment criteria.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
       requestBody:
