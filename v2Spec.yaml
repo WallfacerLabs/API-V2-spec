@@ -21,7 +21,7 @@ tags:
     description: Advanced endpoints providing detailed information about user balances, active positions, historical interactions, and tailored investment opportunities.
 paths:
   /v2/vaults/:
-    post:
+    get:
       tags:
       - General
       description: Retrieves a filtered list of vaults with their basic information including address, network, associated asset details, and transactional support status.
@@ -42,20 +42,8 @@ paths:
           schema:
             allOf:
               - $ref: '#/components/schemas/AssetSymbolFilter'
-        - name: onlyTransactional
-          in: query
-          required: false
-          description: Include only vaults that are supported in the transactional interface.
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/OnlyTransactionalFilter'
-        - name: onlyAppFeatured
-          in: query
-          required: false
-          description: Include only vaults that are featured in app.vaults.fyi
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+        - $ref: '#/components/parameters/OnlyTransactionalQueryParam'
+        - $ref: '#/components/parameters/OnlyAppFeaturedQueryParam'
       security:
         - apiKey: []
       responses:
@@ -80,7 +68,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/assets/:
-    post:
+    get:
       tags:
       - General
       description: Retrieves a filtered list of supported assets with their metadata including address, symbol, name, decimals, and network information.
@@ -164,58 +152,24 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /v2/detailed-vaults/:
-    post:
+    get:
       tags:
       - Detailed Vaults
       description: Retrieves a comprehensive list of vaults with detailed performance metrics including APY, TVL, rewards, risk scores, and protocol information based on specified filters.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                page:
-                  allOf:
-                    - $ref: '#/components/schemas/PageNumberFilter'
-                perPage:
-                  allOf:
-                    - $ref: '#/components/schemas/PerPageFilter'
-                allowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedNetworksFilter'
-                disallowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
-                allowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedAssetsFilter'
-                disallowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
-                allowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
-                disallowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minTvl:
-                  allOf:
-                    - $ref: '#/components/schemas/MinTvlFilter'
-                maxTvl:
-                  allOf:
-                    - $ref: '#/components/schemas/MaxTvlFilter'
-                tags:
-                  allOf:
-                    - $ref: '#/components/schemas/TagsFilter'
-                onlyTransactional:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
-                onlyAppFeatured:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
-              additionalProperties: false
-              required:
-                - page
+      parameters:
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+        - $ref: '#/components/parameters/AllowedNetworksQueryParam'
+        - $ref: '#/components/parameters/DisallowedNetworksQueryParam'
+        - $ref: '#/components/parameters/AllowedAssetsQueryParam'
+        - $ref: '#/components/parameters/DisallowedAssetsQueryParam'
+        - $ref: '#/components/parameters/AllowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/DisallowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/MinTvlQueryParam'
+        - $ref: '#/components/parameters/MaxTvlQueryParam'
+        - $ref: '#/components/parameters/TagsQueryParam'
+        - $ref: '#/components/parameters/OnlyTransactionalQueryParam'
+        - $ref: '#/components/parameters/OnlyAppFeaturedQueryParam'
       security:
         - apiKey: []
       responses:
@@ -349,21 +303,12 @@ paths:
           $ref: '#/components/responses/InternalServerError'
           
   /v2/benchmarks/:
-    post:
+    get:
       tags:
       - Benchmarks
       description: Retrieves vaults.fyi curated benchmark data for USD and ETH yield performance, aggregated across the specified networks with detailed APY metrics and contributing vault information.
       parameters:
-        - name: includedNetworks
-          in: query
-          required: true
-          schema:
-            type: array
-            items:
-              allOf:
-                - $ref: '#/components/schemas/NetworkEnumFilter'
-            default:
-              - "mainnet"
+        - $ref: '#/components/parameters/IncludedNetworksQueryParam'
       security:
         - apiKey: []
       responses:
@@ -388,7 +333,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /v2/historical/{network}/{vaultAddress}:
-    post:
+    get:
       tags:
       - Historical (PRO)
       description: Retrieves time-series historical data for both APY and TVL metrics for a specific vault, allowing for trend analysis across customizable time periods.
@@ -432,7 +377,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/historical/{network}/{vaultAddress}/apy:
-    post:
+    get:
       tags:
       - Historical (PRO)
       description: Retrieves time-series historical APY data for a specific vault, including base yield and rewards components over a customizable time range.
@@ -473,7 +418,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/historical/{network}/{vaultAddress}/tvl:
-    post:
+    get:
       tags:
       - Historical (PRO)
       description: Retrieves time-series historical TVL data for a specific vault, tracking capital flow trends in both native token amount and USD value over a customizable time range.
@@ -646,42 +591,19 @@ paths:
           $ref: '#/components/responses/InternalServerError'
                 
   /v2/portfolio/wallet-balances/{userAddress}:
-    post:
+    get:
       tags:
         - Portfolio (PRO)
       description: Retrieves detailed on-chain wallet balances for a specific user across multiple networks and assets, including both native token amounts and USD value representations.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                page:
-                  allOf:
-                    - $ref: '#/components/schemas/PageNumberFilter'
-                perPage:
-                  allOf:
-                    - $ref: '#/components/schemas/PerPageFilter'
-                allowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedNetworksFilter'
-                disallowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
-                allowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedAssetsFilter'
-                disallowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
-                minUsdValueThreshold:
-                  allOf:
-                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
-              additionalProperties: false
-              required:
-                - page
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+        - $ref: '#/components/parameters/AllowedNetworksQueryParam'
+        - $ref: '#/components/parameters/DisallowedNetworksQueryParam'
+        - $ref: '#/components/parameters/AllowedAssetsQueryParam'
+        - $ref: '#/components/parameters/DisallowedAssetsQueryParam'
+        - $ref: '#/components/parameters/MinUsdValueThresholdQueryParam'
       security:
         - apiKey: []
       responses:
@@ -713,52 +635,22 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/positions/{userAddress}:
-    post:
+    get:
       tags:
         - Portfolio (PRO)
       description: Retrieves all active vault positions for a specific user across multiple networks and protocols, including deposit amounts, current APY, and unclaimed rewards.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                page:
-                  allOf:
-                    - $ref: '#/components/schemas/PageNumberFilter'
-                perPage:
-                  allOf:
-                    - $ref: '#/components/schemas/PerPageFilter'
-                apyInterval:
-                  allOf:
-                    - $ref: '#/components/schemas/ApyIntervalFilter'
-                allowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedNetworksFilter'
-                disallowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
-                allowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedAssetsFilter'
-                disallowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
-                allowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
-                disallowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minUsdValueThreshold:
-                  allOf:
-                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
-                
-              additionalProperties: false
-              required:
-                - page
+        - $ref: '#/components/parameters/PageQueryParam'
+        - $ref: '#/components/parameters/PerPageQueryParam'
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/AllowedNetworksQueryParam'
+        - $ref: '#/components/parameters/DisallowedNetworksQueryParam'
+        - $ref: '#/components/parameters/AllowedAssetsQueryParam'
+        - $ref: '#/components/parameters/DisallowedAssetsQueryParam'
+        - $ref: '#/components/parameters/AllowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/DisallowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/MinUsdValueThresholdQueryParam'
       security:
         - apiKey: []
       responses:
@@ -786,7 +678,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/positions/{network}/{vaultAddress}/{userAddress}:
-    post:
+    get:
       tags:
         - Portfolio (PRO)
       description: Retrieves detailed information about a user's position in a specific vault, including deposit amount, current APY, and unclaimed rewards for focused analysis.
@@ -812,7 +704,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/events/{network}/{vaultAddress}/{userAddress}:
-    post:
+    get:
       tags:
       - Portfolio (PRO)
       description: Retrieves chronological event history for a user's interactions with a specific vault, including deposits, withdrawals, and transfers with timestamp and block number information.
@@ -884,68 +776,26 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/best-deposit-options/{userAddress}:
-    post:
+    get:
       tags:
         - Portfolio (PRO)
       description: Analyzes a user's existing wallet balances and recommends optimal vault deposit opportunities based on yield performance, risk parameters, and user-defined criteria.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                apyInterval:
-                  allOf:
-                    - $ref: '#/components/schemas/ApyIntervalFilter'
-                allowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedNetworksFilter'
-                disallowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
-                allowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedAssetsFilter'
-                disallowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
-                allowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
-                disallowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minTvl:
-                  allOf:
-                    - $ref: '#/components/schemas/MinTvlFilter'
-                onlyTransactional:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
-                onlyAppFeatured:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
-                minUsdValueThreshold:
-                  allOf:
-                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
-                minApy:
-                  allOf:
-                    - $ref: '#/components/schemas/MinApyFilter'
-                maxVaultsPerAsset:
-                  type: integer
-                  minimum: 1
-                  maximum: 5
-                  default: 3
-                  description: Maximum number of vaults per asset.
-                alwaysReturnAssets:
-                  type: array
-                  items:
-                    type: string
-                    minLength: 1
-                  default: []
-                  description: Symbols/tickers of assets to always return, regardless of balance.
-              additionalProperties: false
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/AllowedNetworksQueryParam'
+        - $ref: '#/components/parameters/DisallowedNetworksQueryParam'
+        - $ref: '#/components/parameters/AllowedAssetsQueryParam'
+        - $ref: '#/components/parameters/DisallowedAssetsQueryParam'
+        - $ref: '#/components/parameters/AllowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/DisallowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/MinTvlQueryParam'
+        - $ref: '#/components/parameters/MinApyQueryParam'
+        - $ref: '#/components/parameters/MinUsdValueThresholdQueryParam'
+        - $ref: '#/components/parameters/MaxVaultsPerAssetQueryParam'
+        - $ref: '#/components/parameters/AlwaysReturnAssetsQueryParam'
+        - $ref: '#/components/parameters/OnlyTransactionalQueryParam'
+        - $ref: '#/components/parameters/OnlyAppFeaturedQueryParam'
       security:
         - apiKey: []
       responses:
@@ -963,55 +813,24 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v2/portfolio/best-vault/{userAddress}:
-    post:
+    get:
       tags:
         - Portfolio (PRO)
       description: Identifies and recommends the single highest-performing vault opportunity for a user based on their wallet balances, yield metrics, risk parameters, and customizable investment criteria.
       parameters:
         - $ref: '#/components/parameters/UserAddressPathParam'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                apyInterval:
-                  allOf:
-                    - $ref: '#/components/schemas/ApyIntervalFilter'
-                allowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedNetworksFilter'
-                disallowedNetworks:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedNetworksFilter'
-                allowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedAssetsFilter'
-                disallowedAssets:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedAssetsFilter'
-                allowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/AllowedProtocolsFilter'
-                disallowedProtocols:
-                  allOf:
-                    - $ref: '#/components/schemas/DisallowedProtocolsFilter'
-                minTvl:
-                  allOf:
-                    - $ref: '#/components/schemas/MinTvlFilter'
-                onlyTransactional:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyTransactionalFilter'
-                onlyAppFeatured:
-                  allOf:
-                    - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
-                minUsdValueThreshold:
-                  allOf:
-                    - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
-                minApy:
-                  allOf:
-                    - $ref: '#/components/schemas/MinApyFilter'
-              additionalProperties: false
+        - $ref: '#/components/parameters/ApyIntervalQueryParam'
+        - $ref: '#/components/parameters/AllowedNetworksQueryParam'
+        - $ref: '#/components/parameters/DisallowedNetworksQueryParam'
+        - $ref: '#/components/parameters/AllowedAssetsQueryParam'
+        - $ref: '#/components/parameters/DisallowedAssetsQueryParam'
+        - $ref: '#/components/parameters/AllowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/DisallowedProtocolsQueryParam'
+        - $ref: '#/components/parameters/MinTvlQueryParam'
+        - $ref: '#/components/parameters/MinApyQueryParam'
+        - $ref: '#/components/parameters/MinUsdValueThresholdQueryParam'
+        - $ref: '#/components/parameters/OnlyTransactionalQueryParam'
+        - $ref: '#/components/parameters/OnlyAppFeaturedQueryParam'
       security:
         - apiKey: []
       responses:
@@ -1762,6 +1581,140 @@ components:
       schema:
         allOf:
           - $ref: '#/components/schemas/ToTimestampFilter'
+    OnlyTransactionalQueryParam:
+      name: onlyTransactional
+      in: query
+      required: false
+      description: Include only vaults that are supported in the transactional interface.
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/OnlyTransactionalFilter'
+    OnlyAppFeaturedQueryParam:
+      name: onlyAppFeatured
+      in: query
+      required: false
+      description: Include only vaults that are featured in app.vaults.fyi
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/OnlyAppFeaturedFilter'
+    AllowedNetworksQueryParam:
+      name: allowedNetworks
+      in: query
+      required: false
+      description: Networks to be included (name or CAIP).
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/AllowedNetworksFilter'
+    DisallowedNetworksQueryParam:
+      name: disallowedNetworks
+      in: query
+      required: false
+      description: Networks to be excluded (name or CAIP). The parameter is ignored if "allowedNetworks" is specified.
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/DisallowedNetworksFilter'
+    IncludedNetworksQueryParam:
+      name: includedNetworks
+      in: query
+      required: true
+      schema:
+        type: array
+        items:
+          allOf:
+            - $ref: '#/components/schemas/NetworkEnumFilter'
+        default:
+          - "mainnet"
+    AllowedAssetsQueryParam:
+      name: allowedAssets
+      in: query
+      required: false
+      description: Assets to be included by symbol(ticker)
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/AllowedAssetsFilter'
+    DisallowedAssetsQueryParam:
+      name: disallowedAssets
+      in: query
+      required: false
+      description: Assets to be excluded by symbol(ticker)
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/DisallowedAssetsFilter'
+    AllowedProtocolsQueryParam:
+      name: allowedProtocols
+      in: query
+      required: false
+      description: Protocols to be included by name
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/DisallowedAssetsFilter'
+    DisallowedProtocolsQueryParam:
+      name: disallowedProtocols
+      in: query
+      required: false
+      description: Protocols to be excluded by name
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/DisallowedAssetsFilter'
+    MinTvlQueryParam:
+      name: minTvl
+      in: query
+      required: false
+      description: Minimum TVL in USD of the vaults to be included
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/MinTvlFilter'
+    MaxTvlQueryParam:
+      name: maxTvl
+      in: query
+      required: false
+      description: Maximum TVL in USD of the vaults to be included
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/MaxTvlFilter'
+    TagsQueryParam:
+      name: tags
+      in: query
+      required: false
+      description: Tags to be included
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/TagsFilter'
+    MinUsdValueThresholdQueryParam:
+      name: minUsdValueThreshold
+      in: query
+      required: false
+      description: Minimum value in USD of the items to be included
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/MinBalanceUsdThresholdFilter'
+    MinApyQueryParam:
+      name: minApy
+      in: query
+      required: false
+      description: Minimum APY of the vaults to be included
+      schema:
+        allOf:
+          - $ref: '#/components/schemas/MinApyFilter'
+    MaxVaultsPerAssetQueryParam:
+      name: maxVaultsPerAsset
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 5
+        default: 3
+        description: Maximum number of vaults per asset.
+    AlwaysReturnAssetsQueryParam:
+      name: alwaysReturnAssets
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+          minLength: 1
+        default: []
+        description: Symbols/tickers of assets to always return, regardless of balance.
   
   responses:
     BadRequest:
