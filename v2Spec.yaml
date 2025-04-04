@@ -929,6 +929,14 @@ components:
       type: integer
       minimum: 0
       example: 1
+    LastPageNumber:
+      type: integer
+      minimum: 0
+      example: 23
+    ItemsOnPage:
+      type: integer
+      minimum: 0
+      example: 10
     TotalItems:
       type: integer
       minimum: 0
@@ -936,12 +944,18 @@ components:
     PagedResponse:
       type: object
       properties:
+        itemsOnPage:
+          allOf:
+            - $ref: '#/components/schemas/ItemsOnPage'
         totalItems:
           allOf:
             - $ref: '#/components/schemas/TotalItems'
         nextPage:
           allOf:
             - $ref: '#/components/schemas/PageNumber'
+        lastPage:
+          allOf:
+            - $ref: '#/components/schemas/LastPageNumber'
     Protocol:
       type: object
       properties:
