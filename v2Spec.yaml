@@ -185,6 +185,7 @@ paths:
                   data:
                     type: array
                     items:
+                      type: object
                       allOf:
                         - $ref: '#/components/schemas/VaultDetails'
                   errors:
@@ -898,6 +899,9 @@ components:
         decimals:
           type: number
           example: 6
+        assetLogo:
+          type: string
+          example: "https://images.vaults.fyi/tokens/usdc.png"
     AmountNative:
       type: string
       example: "123120000"
@@ -944,9 +948,21 @@ components:
         name:
           type: string
           example: "AAVE"
+        product:
+          type: string
+          example: "Collateral Vault"
         version:
           type: string
           example: "v2"
+        protocolUrl:
+          type: string
+          example: "https://app.aave.com/"
+        protocolLogo:
+          type: string
+          example: "https://images.vaults.fyi/protocols/aave.png"
+        description:
+          type: string
+          example: "Lenders earn yield from interest paid by borrowers. Borrowers deposit collateral into Aave and borrow overcollateralized loans from liquidity pools. The interest paid by borrowers is distributed to lenders who have supplied assets to the liquidity pool."
     VaultBenchmarks:
       type: object
       properties:
