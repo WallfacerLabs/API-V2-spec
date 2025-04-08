@@ -185,9 +185,7 @@ paths:
                   data:
                     type: array
                     items:
-                      type: object
-                      allOf:
-                        - $ref: '#/components/schemas/VaultDetails'
+                      $ref: '#/components/schemas/VaultDetails'
                   errors:
                     allOf:
                       - $ref: '#/components/schemas/CustomErrorsAll'
@@ -463,15 +461,15 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
           
-  /v2/transactional/context/{network}/{vaultAddress}/{userAddress}:
+  /v2/transactional/context/{userAddress}/{network}/{vaultAddress}:
     get:
       tags:
         - Transactional (PRO)
       description: Retrieves the complete transactional context for a user's interaction with a specific vault, including available deposit/redeem steps, current balances, and claimable rewards.
       parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
-        - $ref: '#/components/parameters/UserAddressPathParam'
       security:
         - apiKey: []
       responses:
@@ -534,16 +532,16 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/transactional/{action}/{network}/{vaultAddress}/{userAddress}:
+  /v2/transactional/{action}/{userAddress}/{network}/{vaultAddress}/:
     get:
       tags:
         - Transactional (PRO)
       description: Retrieves executable transaction payloads for specific actions (deposit, redeem, claim) for a user interacting with a vault, including ready-to-sign transaction data and optional simulation results.
       parameters:
         - $ref: '#/components/parameters/ActionPathParam'
+        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
-        - $ref: '#/components/parameters/UserAddressPathParam'
         - name: simulate
           in: query
           required: false
@@ -678,15 +676,15 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/portfolio/positions/{network}/{vaultAddress}/{userAddress}:
+  /v2/portfolio/positions/{userAddress}/{network}/{vaultAddress}:
     get:
       tags:
         - Portfolio (PRO)
       description: Retrieves detailed information about a user's position in a specific vault, including deposit amount, current APY, and unclaimed rewards for focused analysis.
       parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
-        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/ApyIntervalQueryParam'
       security:
         - apiKey: []
@@ -704,15 +702,15 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/portfolio/events/{network}/{vaultAddress}/{userAddress}:
+  /v2/portfolio/events/{userAddress}/{network}/{vaultAddress}:
     get:
       tags:
       - Portfolio (PRO)
       description: Retrieves chronological event history for a user's interactions with a specific vault, including deposits, withdrawals, and transfers with timestamp and block number information.
       parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
-        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/PageQueryParam'
         - $ref: '#/components/parameters/PerPageQueryParam'
         - $ref: '#/components/parameters/FromTimestampQueryParam'
@@ -751,15 +749,15 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /v2/portfolio/returns/{network}/{vaultAddress}/{userAddress}:
+  /v2/portfolio/returns/{userAddress}/{network}/{vaultAddress}:
     get:
       tags:
       - Portfolio (PRO)
       description: Retrieves the cumulative investment returns for a user's position in a specific vault, showing total yield earned in both native token amount and USD value.
       parameters:
+        - $ref: '#/components/parameters/UserAddressPathParam'
         - $ref: '#/components/parameters/NetworkPathParam'
         - $ref: '#/components/parameters/VaultAddressPathParam'
-        - $ref: '#/components/parameters/UserAddressPathParam'
       security:
         - apiKey: []
       responses:
@@ -929,33 +927,19 @@ components:
       type: integer
       minimum: 0
       example: 1
-    LastPageNumber:
-      type: integer
-      minimum: 0
-      example: 23
     ItemsOnPage:
       type: integer
       minimum: 0
       example: 10
-    TotalItems:
-      type: integer
-      minimum: 0
-      example: 127
     PagedResponse:
       type: object
       properties:
         itemsOnPage:
           allOf:
             - $ref: '#/components/schemas/ItemsOnPage'
-        totalItems:
-          allOf:
-            - $ref: '#/components/schemas/TotalItems'
         nextPage:
           allOf:
             - $ref: '#/components/schemas/PageNumber'
-        lastPage:
-          allOf:
-            - $ref: '#/components/schemas/LastPageNumber'
     Protocol:
       type: object
       properties:
