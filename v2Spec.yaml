@@ -492,14 +492,27 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Step'
-                  lpTokenBalance:
-                    type: string
-                  idleAssets:
-                    $ref: '#/components/schemas/AssetAmounts'
-                  lockedValueInAssets:
-                    $ref: '#/components/schemas/AssetAmounts'
-                  unclaimedAssets:
-                    $ref: '#/components/schemas/AssetAmounts'
+                  lpToken:
+                    $ref: '#/components/schemas/LpTokenWithBalance'
+                  asset:
+                    $ref: '#/components/schemas/AssetForContext'
+                  additionalAssets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetForContext'
+                  childrenPositions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        lpToken:
+                          $ref: '#/components/schemas/LpTokenWithBalance'
+                        asset:
+                          $ref: '#/components/schemas/AssetForContext'
+                        additionalAssets:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/AssetForContext'
                   vaultSpecificData:
                     type: object
                     additionalProperties: {}
@@ -589,7 +602,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
                 
-  /v2/portfolio/wallet-balances/{userAddress}:
+  /v2/portfolio/idle-assets/{userAddress}:
     get:
       tags:
         - Portfolio (PRO)
@@ -900,6 +913,24 @@ components:
         assetLogo:
           type: string
           example: "https://images.vaults.fyi/tokens/usdc.png"
+    LpToken:
+      type: object
+      properties:
+        address:
+          allOf:
+            - $ref: '#/components/schemas/Address'
+        assetCaip:
+          allOf:
+            - $ref: '#/components/schemas/AssetCaip'
+        name:
+          type: string
+          example: "Aave USD Coin"
+        symbol:
+          type: string
+          example: "aUSDC"
+        decimals:
+          type: number
+          example: 6
     AmountNative:
       type: string
       example: "123120000"
@@ -917,6 +948,26 @@ components:
             balanceUsd:
               allOf:
                 - $ref: '#/components/schemas/AmountUsd'
+    AssetForContext:
+      allOf:
+        - $ref: '#/components/schemas/AssetWithBalance'
+        - type: object
+          properties:
+            unclaimedNative:
+              $ref: '#/components/schemas/AmountNative'
+            unclaimedUsd:
+              $ref: '#/components/schemas/AmountUsd'
+            positionValueInAsset:
+              $ref: '#/components/schemas/AmountNative'
+    LpTokenWithBalance:
+      allOf:
+        - $ref: '#/components/schemas/LpToken'
+        - type: object
+          properties:
+            balanceNative:
+              $ref: '#/components/schemas/AmountNative'
+            balanceUsd:
+              $ref: '#/components/schemas/AmountUsd'
     IsTransactional:
       type: boolean
       example: true
@@ -1118,6 +1169,8 @@ components:
         protocol:
           allOf:
             - $ref: '#/components/schemas/Protocol'
+        additionalAssets:
+          $ref: '#/components/schemas/Asset'
         lendUrl:
           type: string
           example: "https://app.vaults.fyi/opportunity/mainnet/0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c"
@@ -1151,26 +1204,26 @@ components:
               type: string
               example: "Aave v3 USDC"
             protocol:
-              allOf:
-                - $ref: '#/components/schemas/Protocol'
+              $ref: '#/components/schemas/Protocol'
             apy:
-              allOf:
-                - $ref: '#/components/schemas/ApyBreakdown'
-            balanceNative:
-              allOf:
-                - $ref: '#/components/schemas/AmountNative'
-            balanceUsd:
-              allOf:
-                - $ref: '#/components/schemas/AmountUsd'
-            balanceLp:
-              allOf:
-                - $ref: '#/components/schemas/AmountNative'
-            unclaimedNative:
-              allOf:
-                - $ref: '#/components/schemas/AmountNative'
-            unclaimedUsd:
-              allOf:
-                - $ref: '#/components/schemas/AmountUsd'
+              $ref: '#/components/schemas/ApyBreakdown'
+            asset:
+              $ref: '#/components/schemas/AssetForContext'
+            lpToken:
+              $ref: '#/components/schemas/LpTokenWithBalance'
+            childrenPositions:
+              type: array
+              items:
+                type: object
+                properties:
+                  lpToken:
+                    $ref: '#/components/schemas/LpTokenWithBalance'
+                  asset:
+                    $ref: '#/components/schemas/AssetForContext'
+                  additionalAssets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssetForContext'
     HistoricalPointTime:
       type: object
       properties:
