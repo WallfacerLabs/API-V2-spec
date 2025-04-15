@@ -494,7 +494,7 @@ paths:
                       $ref: '#/components/schemas/Step'
                   lpToken:
                     $ref: '#/components/schemas/LpTokenWithBalance'
-                  mainAsset:
+                  asset:
                     $ref: '#/components/schemas/AssetForContext'
                   additionalAssets:
                     type: array
@@ -1056,7 +1056,7 @@ components:
         - $ref: '#/components/schemas/VaultBasicWithoutAsset'
         - type: object
           properties:
-            mainAsset:
+            asset:
               allOf:
                 - $ref: '#/components/schemas/Asset'
     Apy:
@@ -1207,7 +1207,7 @@ components:
               $ref: '#/components/schemas/Protocol'
             apy:
               $ref: '#/components/schemas/ApyBreakdown'
-            mainAsset:
+            asset:
               $ref: '#/components/schemas/AssetForContext'
             lpToken:
               $ref: '#/components/schemas/LpTokenWithBalance'
@@ -1218,7 +1218,7 @@ components:
                 properties:
                   lpToken:
                     $ref: '#/components/schemas/LpTokenWithBalance'
-                  mainAsset:
+                  asset:
                     $ref: '#/components/schemas/AssetForContext'
                   additionalAssets:
                     type: array
@@ -1360,7 +1360,7 @@ components:
         requestedAddress:
           allOf:
             - $ref: '#/components/schemas/Address'
-        mainAsset:
+        asset:
           allOf:
             -  $ref: '#/components/schemas/AssetWithBalance'
         vault:
