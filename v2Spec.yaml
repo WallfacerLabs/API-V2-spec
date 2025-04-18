@@ -626,22 +626,20 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PagedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          allOf:
-                            - $ref: '#/components/schemas/AssetWithBalance'
-                            - type: object
-                              properties:
-                                network:
-                                  $ref: '#/components/schemas/Network'
-                      errors:
-                        allOf:
-                          - $ref: '#/components/schemas/CustomErrorsNoProtocols'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/AssetWithBalance'
+                        - type: object
+                          properties:
+                            network:
+                              $ref: '#/components/schemas/Network'
+                  errors:
+                    allOf:
+                      - $ref: '#/components/schemas/CustomErrorsNoProtocols'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -673,18 +671,16 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/PagedResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          allOf:
-                            - $ref: '#/components/schemas/VaultPosition'
-                      errors:
-                        allOf:
-                          - $ref: '#/components/schemas/CustomErrorsAll'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/VaultPosition'
+                  errors:
+                    allOf:
+                      - $ref: '#/components/schemas/CustomErrorsAll'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1011,9 +1007,6 @@ components:
         protocolLogo:
           type: string
           example: "https://images.vaults.fyi/protocols/aave.png"
-        description:
-          type: string
-          example: "Lenders earn yield from interest paid by borrowers. Borrowers deposit collateral into Aave and borrow overcollateralized loans from liquidity pools. The interest paid by borrowers is distributed to lenders who have supplied assets to the liquidity pool."
     VaultBenchmarks:
       type: object
       properties:
@@ -1182,6 +1175,9 @@ components:
         protocolVaultUrl:
           type: string
           example: "https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_mainnet_v3"
+        description:
+          type: string
+          example: "Lenders earn yield from interest paid by borrowers. Borrowers deposit collateral into Aave and borrow overcollateralized loans from liquidity pools. The interest paid by borrowers is distributed to lenders who have supplied assets to the liquidity pool."
         tags:
           $ref: '#/components/schemas/Tags'
         holders:
